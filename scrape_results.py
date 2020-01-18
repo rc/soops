@@ -92,13 +92,25 @@ def scrape_results(script, directories):
         name0 = info[0][0]
         filenames = locate_files(name0, directory)
         for ir, filename in enumerate(filenames):
-            output(ir, filename)
             rdir = op.dirname(filename)
+            output(ir, rdir)
 
             rdata = {'rdir' : rdir}
             for filename, fun in info:
-                out = fun(op.join(rdir, filename), rdata=rdata)
-                rdata.update(out)
+                output(filename)
+                try:
+                    out = fun(op.join(rdir, filename), rdata=rdata)
+
+                except KeyboardInterrupt:
+                    raise
+
+                except Exception as exc:
+                    output('- failed with:')
+                    output(exc)
+                    continue
+
+                finally:
+                    rdata.update(out)
 
             data.append(pd.Series(rdata))
 
