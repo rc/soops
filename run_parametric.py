@@ -37,12 +37,6 @@ def check_contracted(all_pars, options, key_order):
             break
     return ok
 
-def make_fig_filename(filename, figdir):
-    aux = os.path.splitext(os.path.basename(filename))
-    aux = aux[0].replace('.', '_')
-    fig_filename = os.path.join(figdir, aux + '.png')
-    return fig_filename
-
 helps = {
     'recompute' :
      """recomputation strategy: 0: do not recompute,
