@@ -114,9 +114,20 @@ def scrape_results(info, directories):
     df = pd.DataFrame(data)
     return df
 
+def run_plugins(info, df):
+    if not len(info):
+        return
+
+    output('calling plugins:')
+    data = None
+    for fun in info:
+        output(fun.__name__)
+        data = fun(df, data=data)
+
 helps = {
     'sort' : 'column keys for sorting of DataFrame rows',
     'results' : 'reuse previously scraped results file',
+    'no_plugins' : 'do not call post-processing plugins',
     'shell' : 'run ipython shell after all computations',
     'output_dir' : 'output directory [default: %(default)s]',
     'script' : 'the script that was run to generate the results',
@@ -132,6 +143,9 @@ def main():
     parser.add_argument('-r', '--results', metavar='filename',
                         action='store', dest='results',
                         default=None, help=helps['results'])
+    parser.add_argument('--no-plugins',
+                        action='store_false', dest='plugins',
+                        default=True, help=helps['no_plugins'])
     parser.add_argument('--shell',
                         action='store_true', dest='shell',
                         default=False, help=helps['shell'])
@@ -168,6 +182,10 @@ def main():
     df.to_csv(filename)
     filename = op.join(options.output_dir, 'results.h5')
     df.to_hdf(filename, 'results')
+
+    if options.plugins:
+        plugin_info = script_mod.get_plugin_info()
+        run_plugins(plugin_info, df)
 
     if options.shell:
         from sfepy.base.base import shell; shell()
