@@ -79,10 +79,7 @@ def parse_log_info(log, info, key, rdata=None):
 
     return {key : plog}
 
-def scrape_results(script, directories):
-    script_mod = import_file(script)
-
-    info = script_mod.get_scrape_info()
+def scrape_results(info, directories):
     if not len(info):
         return pd.DataFrame({})
 
@@ -145,13 +142,17 @@ def main():
     parser.add_argument('directories', nargs='+', help=helps['directories'])
     options = parser.parse_args()
 
+    script_mod = import_file(options.script)
+
     options.sort = options.sort.split(',') if options.sort is not None else []
 
     output.prefix = ''
 
     if (options.results is None
         or not (op.exists(options.results) and op.isfile(options.results))):
-        df = scrape_results(options.script, options.directories)
+
+        scrape_info = script_mod.get_scrape_info()
+        df = scrape_results(scrape_info, options.directories)
 
     else:
         df = pd.read_hdf(options.results, 'results')
