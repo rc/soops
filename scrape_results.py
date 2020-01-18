@@ -14,8 +14,8 @@ from sfepy.base.base import output, import_file, Struct
 from sfepy.base.conf import dict_from_string
 from sfepy.base.ioutils import locate_files, ensure_path
 
-def load_array(filename, key='array', rdata=None):
-    arr = np.loadtxt(filename)
+def load_array(filename, key='array', load_kwargs={}, rdata=None):
+    arr = np.loadtxt(filename, **load_kwargs)
     return {key : arr}
 
 def load_options(filename):
