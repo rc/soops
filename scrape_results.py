@@ -114,15 +114,31 @@ def scrape_results(info, directories):
     df = pd.DataFrame(data)
     return df
 
+def get_parametric_columns(df):
+    par_cols = []
+    omit = ('output_dir', 'rdir')
+    for ic, col in enumerate(df.columns):
+        try:
+            num = df[col].nunique()
+
+        except TypeError:
+            continue
+
+        if num > 1 and col not in omit:
+            par_cols.append(col)
+
+    return par_cols
+
 def run_plugins(info, df):
     if not len(info):
         return
 
     output('calling plugins:')
     data = None
+    par_cols = get_parametric_columns(df)
     for fun in info:
         output(fun.__name__)
-        data = fun(df, data=data)
+        data = fun(df, par_cols, data=data)
 
 helps = {
     'sort' : 'column keys for sorting of DataFrame rows',
