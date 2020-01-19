@@ -134,11 +134,11 @@ def run_plugins(info, df):
         return
 
     output('calling plugins:')
-    data = None
     par_cols = get_parametric_columns(df)
+    data = Struct(par_cols=par_cols)
     for fun in info:
         output(fun.__name__)
-        data = fun(df, par_cols, data=data)
+        data = fun(df, data=data)
 
 helps = {
     'sort' : 'column keys for sorting of DataFrame rows',
