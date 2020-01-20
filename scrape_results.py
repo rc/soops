@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 import os.path as op
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -109,6 +110,8 @@ def scrape_results(info, directories):
                 finally:
                     rdata.update(out)
 
+            rdata['time'] = datetime.utcnow()
+
             data.append(pd.Series(rdata))
 
     df = pd.DataFrame(data)
@@ -116,7 +119,7 @@ def scrape_results(info, directories):
 
 def get_parametric_columns(df):
     par_cols = []
-    omit = ('output_dir', 'rdir')
+    omit = ('output_dir', 'rdir', 'time')
     for ic, col in enumerate(df.columns):
         try:
             num = df[col].nunique()
