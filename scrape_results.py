@@ -203,14 +203,14 @@ def main():
         df = pd.read_hdf(options.results, 'df')
         mdf = pd.read_hdf(options.results, 'mdf')
 
-    if options.sort:
-        df = df.sort_values(options.sort)
-        df.index = np.arange(len(df))
-
     output('data keys:')
     output(df.keys())
     output('metadata keys:')
     output(mdf.keys())
+
+    if options.sort:
+        df = df.sort_values(options.sort)
+        df.index = np.arange(len(df))
 
     filename = op.join(options.output_dir, 'results.csv')
     ensure_path(filename)
