@@ -145,7 +145,7 @@ def get_parametric_columns(df):
             num = df[col].nunique()
 
         except TypeError:
-            continue
+            num = len(np.unique([str(ii) for ii in df[col]]))
 
         if num > 1 and col not in omit:
             par_cols.append(col)
