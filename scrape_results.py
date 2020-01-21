@@ -7,6 +7,7 @@ from __future__ import print_function
 import os.path as op
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from datetime import datetime
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -211,6 +212,9 @@ def main():
     if options.sort:
         df = df.sort_values(options.sort)
         df.index = np.arange(len(df))
+
+    warnings.simplefilter(action='ignore',
+                          category=pd.errors.PerformanceWarning)
 
     filename = op.join(options.output_dir, 'results.csv')
     ensure_path(filename)
