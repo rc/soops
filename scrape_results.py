@@ -82,9 +82,10 @@ def parse_log_info(log, info, key, rdata=None):
 
 def scrape_results(info, directories):
     if not len(info):
-        return pd.DataFrame({})
+        return pd.DataFrame({}), pd.DataFrame({})
 
     data = []
+    metadata = []
     for idir, directory in enumerate(directories):
         output(idir, directory)
         name0 = info[0][0]
@@ -94,10 +95,12 @@ def scrape_results(info, directories):
             output(ir, rdir)
 
             rdata = {'rdir' : rdir}
+            rmetadata = {}
             for filename, fun in info:
                 output(filename)
+                path = op.join(rdir, filename)
                 try:
-                    out = fun(op.join(rdir, filename), rdata=rdata)
+                    out = fun(path, rdata=rdata)
 
                 except KeyboardInterrupt:
                     raise
@@ -108,14 +111,23 @@ def scrape_results(info, directories):
                     continue
 
                 finally:
+                    mtime = datetime.fromtimestamp(op.getmtime(path))
+                    rmetadata.update({
+                        'data_row' : len(data),
+                        'data_columns' : tuple(out.keys()),
+                        'filename' : path,
+                        'mtime' : mtime,
+                    })
                     rdata.update(out)
+                    metadata.append(pd.Series(rmetadata))
 
             rdata['time'] = datetime.utcnow()
 
             data.append(pd.Series(rdata))
 
     df = pd.DataFrame(data)
-    return df
+    mdf = pd.DataFrame(metadata)
+    return df, mdf
 
 def get_parametric_columns(df):
     par_cols = []
@@ -185,22 +197,32 @@ def main():
         or not (op.exists(options.results) and op.isfile(options.results))):
 
         scrape_info = script_mod.get_scrape_info()
-        df = scrape_results(scrape_info, options.directories)
+        df, mdf = scrape_results(scrape_info, options.directories)
 
     else:
-        df = pd.read_hdf(options.results, 'results')
+        df = pd.read_hdf(options.results, 'df')
+        mdf = pd.read_hdf(options.results, 'mdf')
 
     if options.sort:
         df = df.sort_values(options.sort)
         df.index = np.arange(len(df))
 
-    output(df)
+    output('data keys:')
+    output(df.keys())
+    output('metadata keys:')
+    output(mdf.keys())
 
     filename = op.join(options.output_dir, 'results.csv')
     ensure_path(filename)
     df.to_csv(filename)
+    filename = op.join(options.output_dir, 'results-meta.csv')
+    mdf.to_csv(filename)
+
     filename = op.join(options.output_dir, 'results.h5')
-    df.to_hdf(filename, 'results')
+    store = pd.HDFStore(filename, mode='w')
+    store.put('df', df)
+    store.put('mdf', mdf)
+    store.close()
 
     if options.plugins:
         plugin_info = script_mod.get_plugin_info()
