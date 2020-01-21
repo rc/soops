@@ -88,15 +88,17 @@ def scrape_results(info, directories):
     data = []
     metadata = []
     for idir, directory in enumerate(directories):
-        output(idir, directory)
+        output('directory {}: {}'.format(idir, directory))
+
         name0 = info[0][0]
         filenames = locate_files(name0, directory)
         for ir, filename in enumerate(filenames):
             rdir = op.dirname(filename)
-            output(ir, rdir)
+            output('results directory {}: {}'.format(ir, rdir))
 
             rdata = {'rdir' : rdir}
             rmetadata = {}
+            output('results files:')
             for filename, fun in info:
                 output(filename)
                 path = op.join(rdir, filename)
