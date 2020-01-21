@@ -114,7 +114,12 @@ def scrape_results(info, directories):
                     continue
 
                 finally:
-                    mtime = datetime.fromtimestamp(op.getmtime(path))
+                    try:
+                        mtime = datetime.fromtimestamp(op.getmtime(path))
+
+                    except FileNotFoundError:
+                        mtime = np.nan
+
                     rmetadata.update({
                         'data_row' : len(data),
                         'data_columns' : tuple(out.keys()),
