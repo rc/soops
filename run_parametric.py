@@ -21,6 +21,18 @@ def make_cmd(run_cmd, opt_args, all_pars):
     cmd = run_cmd.strip()
     for key in opt_args:
         if key in all_pars:
+            par = all_pars[key]
+            if isinstance(par, str) and par.startswith('@'):
+                if par == '@undefined':
+                    continue
+
+                elif par == '@defined':
+                    pass
+
+                else:
+                    raise ValueError(
+                        'unsupported specital parameter value! (%s)' % par
+                    )
             cmd += opt_args[key]
 
     cmd = cmd.format(**all_pars)
