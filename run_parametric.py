@@ -122,6 +122,14 @@ def main():
     client = Client(cluster)
 
     par_seqs = [key_list(key, dconf[key]) for key in key_order]
+
+    count = 0
+    for _all_pars in itertools.product(*par_seqs):
+        if not check_contracted(_all_pars, options, key_order): continue
+        count += 1
+
+    output('number of parameter sets:', count)
+
     calls = []
     for _all_pars in itertools.product(*par_seqs):
         if not check_contracted(_all_pars, options, key_order): continue
