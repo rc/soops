@@ -131,8 +131,10 @@ def main():
     output('number of parameter sets:', count)
 
     calls = []
+    iset = 0
     for _all_pars in itertools.product(*par_seqs):
         if not check_contracted(_all_pars, options, key_order): continue
+        output('parameter set:', iset)
         output(_all_pars)
 
         _it, keys, vals = zip(*_all_pars)
@@ -149,6 +151,7 @@ def main():
             output(cmd)
 
             call = client.submit(subprocess.call, cmd, shell=True, pure=False)
+            call.iset = iset
             call.it = it
             call.all_pars = all_pars
             calls.append(call)
@@ -159,7 +162,10 @@ def main():
             call.all_pars = all_pars
             calls.append(call)
 
+        iset += 1
+
     for call in as_completed(calls):
+        output(call.iset)
         output(call.it)
         output(call.all_pars)
         output(call, call.result())
