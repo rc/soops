@@ -92,11 +92,12 @@ def scrape_results(info, directories):
 
         name0 = info[0][0]
         filenames = locate_files(name0, directory)
+        home = op.expanduser('~')
         for ir, filename in enumerate(filenames):
             rdir = op.dirname(filename)
             output('results directory {}: {}'.format(ir, rdir))
 
-            rdata = {'rdir' : rdir}
+            rdata = {'rdir' : rdir.replace(home, '~')}
             rmetadata = {}
             output('results files:')
             for filename, fun in info:
