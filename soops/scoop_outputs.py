@@ -2,19 +2,17 @@
 """
 Scrape results files.
 """
-from __future__ import absolute_import
-from __future__ import print_function
-import os.path as op
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+import os.path as op
 from datetime import datetime
 import warnings
 
 import numpy as np
 import pandas as pd
 
-from sfepy.base.base import output, import_file, Struct
-from sfepy.base.conf import dict_from_string
-from sfepy.base.ioutils import locate_files, ensure_path
+from soops.base import output, import_file, Struct
+from soops.parsing import parse_as_dict
+from soops.ioutils import locate_files, ensure_path
 
 def load_array(filename, key='array', load_kwargs={}, rdata=None):
     arr = np.loadtxt(filename, **load_kwargs)
@@ -31,7 +29,7 @@ def load_options(filename):
         key = aux[0].strip()
         sval = ':'.join([ii.strip() for ii in aux[1:]])
         try:
-            val = dict_from_string(sval)
+            val = parse_as_dict(sval)
         except:
             try:
                 val = eval(sval)
@@ -241,7 +239,7 @@ def main():
         run_plugins(plugin_info, df)
 
     if options.shell:
-        from sfepy.base.base import shell; shell()
+        from soops.base import shell; shell()
 
 if __name__ == '__main__':
     main()

@@ -9,9 +9,9 @@ import subprocess
 
 from dask.distributed import as_completed, Client, LocalCluster
 
-from sfepy.base.base import output, import_file
-from sfepy.base.conf import dict_from_string
-from sfepy.base.ioutils import ensure_path, save_options
+from soops.parsing import parse_as_dict
+from soops.base import output, import_file
+from soops.ioutils import ensure_path, save_options
 
 def key_list(key, obj):
     return ([(ii, key, item) for ii, item in enumerate(obj)]
@@ -104,7 +104,7 @@ def main():
         options.contract = [ii.split('+')
                             for ii in options.contract.split(',')]
 
-    dconf = dict_from_string(options.conf)
+    dconf = parse_as_dict(options.conf)
     key_order = sorted(dconf.keys())
 
     filename = os.path.join(options.output_dir, 'options.txt')
@@ -173,7 +173,7 @@ def main():
     client.close()
 
     if options.shell:
-        from sfepy.base.base import shell; shell()
+        from soops.base import shell; shell()
 
 if __name__ == '__main__':
     main()
