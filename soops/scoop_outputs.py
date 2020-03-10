@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Scrape results files.
+Scoop output files.
 """
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import os.path as op
@@ -79,7 +79,7 @@ def parse_log_info(log, info, key, rdata=None):
 
     return {key : plog}
 
-def scrape_results(info, directories):
+def scoop_outputs(info, directories):
     if not len(info):
         return pd.DataFrame({}), pd.DataFrame({})
 
@@ -166,7 +166,7 @@ def run_plugins(info, df):
 
 helps = {
     'sort' : 'column keys for sorting of DataFrame rows',
-    'results' : 'reuse previously scraped results file',
+    'results' : 'reuse previously scooped results file',
     'no_plugins' : 'do not call post-processing plugins',
     'shell' : 'run ipython shell after all computations',
     'output_dir' : 'output directory [default: %(default)s]',
@@ -205,8 +205,8 @@ def main():
     if (options.results is None
         or not (op.exists(options.results) and op.isfile(options.results))):
 
-        scrape_info = script_mod.get_scrape_info()
-        df, mdf = scrape_results(scrape_info, options.directories)
+        scoop_info = script_mod.get_scoop_info()
+        df, mdf = scoop_outputs(scoop_info, options.directories)
 
     else:
         df = pd.read_hdf(options.results, 'df')
