@@ -162,6 +162,8 @@ def run_plugins(info, df):
         output(fun.__name__)
         data = fun(df, data=data)
 
+    return data
+
 helps = {
     'sort' : 'column keys for sorting of DataFrame rows',
     'results' : 'reuse previously scraped results file',
