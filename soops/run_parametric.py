@@ -104,7 +104,7 @@ def main():
         options.contract = [ii.split('+')
                             for ii in options.contract.split(',')]
 
-    dconf = parse_as_dict(options.conf)
+    dconf = parse_as_dict(options.conf, free_word=True)
     key_order = sorted(dconf.keys())
 
     filename = os.path.join(options.output_dir, 'options.txt')
