@@ -98,7 +98,7 @@ def main():
     output.prefix = 'run:'
 
     script_mod = import_file(options.script)
-    run_cmd, opt_args, log_basename = script_mod.get_run_info()
+    run_cmd, opt_args, output_dir_key, log_basename = script_mod.get_run_info()
 
     if options.contract is not None:
         options.contract = [ii.split('+')
@@ -141,8 +141,8 @@ def main():
         all_pars = dict(zip(keys, vals))
         it = '_'.join('%d' % ii for ii in _it)
 
-        podir = all_pars['output_dir'] % it
-        all_pars['output_dir'] = podir
+        podir = all_pars[output_dir_key] % it
+        all_pars[output_dir_key] = podir
 
         filename = os.path.join(podir, log_basename)
 
