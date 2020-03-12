@@ -112,7 +112,7 @@ def scoop_outputs(info, directories):
                     output(exc)
                     continue
 
-                finally:
+                else:
                     try:
                         mtime = datetime.fromtimestamp(op.getmtime(path))
 
