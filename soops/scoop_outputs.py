@@ -151,13 +151,13 @@ def get_parametric_columns(df):
 
     return par_cols
 
-def run_plugins(info, df):
+def run_plugins(info, df, output_dir):
     if not len(info):
         return
 
     output('calling plugins:')
     par_cols = get_parametric_columns(df)
-    data = Struct(par_cols=par_cols)
+    data = Struct(par_cols=par_cols, output_dir=output_dir)
     for fun in info:
         output(fun.__name__)
         data = fun(df, data=data)
@@ -238,7 +238,7 @@ def main():
 
     if options.plugins:
         plugin_info = script_mod.get_plugin_info()
-        run_plugins(plugin_info, df)
+        run_plugins(plugin_info, df, options.output_dir)
 
     if options.shell:
         from soops.base import shell; shell()
