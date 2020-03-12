@@ -17,7 +17,7 @@ setup(
     long_description=open(readme_filename, encoding="utf-8").read(),
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: BSD License',
         'Programming Language :: Python :: 3',
     ],
     keywords='run parametric studies, scoop output',
