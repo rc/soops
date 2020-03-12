@@ -138,7 +138,7 @@ def scoop_outputs(info, directories):
 
 def get_parametric_columns(df):
     par_cols = []
-    omit = ('output_dir', 'rdir', 'time')
+    omit = ('rdir', 'time')
     for ic, col in enumerate(df.columns):
         try:
             num = df[col].nunique()
