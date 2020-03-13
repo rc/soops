@@ -4,15 +4,20 @@ Installation file for soops.
 import os
 from setuptools import setup
 
-import soops.version as version
-
 srcdir = os.path.dirname(__file__)
-
 readme_filename = os.path.join(srcdir, 'README.rst')
+
+def read_version_py(filename='soops/version.py'):
+    ns = {}
+    with open(filename, 'rb') as fd:
+        exec(fd.read(), ns)
+    return ns['__version__']
+
+version = read_version_py()
 
 setup(
     name='soops',
-    version=version.__version__,
+    version=version,
     description='Run parametric studies and scoop output files.',
     long_description=open(readme_filename, encoding="utf-8").read(),
     classifiers=[
@@ -26,6 +31,7 @@ setup(
     author_email='cimrman3@ntc.zcu.cz',
     license='BSD',
     packages=['soops'],
+    python_requires='>=3.5',
     install_requires=[
         'dask',
         'pandas',
