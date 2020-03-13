@@ -98,7 +98,12 @@ def main():
     output.prefix = 'run:'
 
     script_mod = import_file(options.script)
-    run_cmd, opt_args, output_dir_key, log_basename = script_mod.get_run_info()
+    run_cmd, opt_args, output_dir_key, _is_finished = script_mod.get_run_info()
+    if isinstance(_is_finished, str):
+        is_finished = lambda x: os.path.exists(os.path.join(x, _is_finished))
+
+    else:
+        is_finished = _is_finished
 
     if options.contract is not None:
         options.contract = [ii.split('+')
@@ -144,9 +149,7 @@ def main():
         podir = all_pars[output_dir_key] % it
         all_pars[output_dir_key] = podir
 
-        filename = os.path.join(podir, log_basename)
-
-        if (recompute > 1) or (recompute and not os.path.exists(filename)):
+        if (recompute > 1) or (recompute and not is_finished(podir)):
             cmd = make_cmd(run_cmd, opt_args, all_pars)
             output(cmd)
 
@@ -158,6 +161,7 @@ def main():
 
         else:
             call = client.submit(lambda: None)
+            call.iset = iset
             call.it = it
             call.all_pars = all_pars
             calls.append(call)
