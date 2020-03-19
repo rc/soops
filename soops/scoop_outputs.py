@@ -36,26 +36,6 @@ def load_split_options(filename, split_keys, rdata=None):
     options = split_options(_options, split_keys)
     return options
 
-def parse_log_info(log, info, key, rdata=None):
-    plog = {}
-    offset = 0
-    for group, val in info.items():
-        pinfo = Struct(xlabel=val[0], ylabel=val[1], yscale=val[2],
-                       names=val[3], plot_kwargs=val[4], data={})
-        for name in pinfo.names:
-            if name in log:
-                xs, ys, vlines = log[name]
-
-            else:
-                xs, ys, vlines = log[pinfo.names.index(name) + offset]
-
-            pinfo.data[name] = (xs, ys)
-
-        plog[group] = pinfo
-        offset += len(pinfo.names)
-
-    return {key : plog}
-
 def scoop_outputs(info, directories):
     if not len(info):
         return pd.DataFrame({}), pd.DataFrame({})
