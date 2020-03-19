@@ -11,34 +11,11 @@ import numpy as np
 import pandas as pd
 
 from soops.base import output, import_file, Struct
-from soops.parsing import parse_as_dict
-from soops.ioutils import locate_files, ensure_path
+from soops.ioutils import load_options, locate_files, ensure_path
 
 def load_array(filename, key='array', load_kwargs={}, rdata=None):
     arr = np.loadtxt(filename, **load_kwargs)
     return {key : arr}
-
-def load_options(filename):
-    with open(filename, 'r') as fd:
-        data = fd.readlines()
-
-    raw_options = [ii.strip() for ii in data[8:]]
-    options = {}
-    for opt in raw_options:
-        aux = opt.split(':')
-        key = aux[0].strip()
-        sval = ':'.join([ii.strip() for ii in aux[1:]])
-        try:
-            val = parse_as_dict(sval)
-        except:
-            try:
-                val = eval(sval)
-            except:
-                val = sval
-
-        options[key] = val
-
-    return options
 
 def split_options(options, split_keys):
     new_options = options.copy()
