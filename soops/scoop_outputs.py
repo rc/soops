@@ -108,6 +108,19 @@ def get_parametric_columns(df):
 
     return par_cols
 
+def get_uniques(df, columns):
+    uniques = {}
+    for col in sorted(columns):
+        try:
+            vals = df[col].unique()
+
+        except TypeError:
+            vals = np.unique([str(ii) for ii in df[col]])
+
+        uniques[col] = sorted(vals)
+
+    return uniques
+
 def run_plugins(info, df, output_dir):
     if not len(info):
         return
