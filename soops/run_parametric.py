@@ -13,7 +13,7 @@ from soops.parsing import parse_as_dict
 from soops.base import output, import_file
 from soops.ioutils import ensure_path, save_options
 
-def key_list(key, obj):
+def make_key_list(key, obj):
     return ([(ii, key, item) for ii, item in enumerate(obj)]
             if isinstance(obj, list) else [(0, key, obj)])
 
@@ -126,7 +126,7 @@ def main():
     cluster = LocalCluster(n_workers=options.n_workers, threads_per_worker=1)
     client = Client(cluster)
 
-    par_seqs = [key_list(key, dconf[key]) for key in key_order]
+    par_seqs = [make_key_list(key, dconf[key]) for key in key_order]
 
     count = 0
     for _all_pars in itertools.product(*par_seqs):
