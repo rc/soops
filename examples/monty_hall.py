@@ -3,6 +3,8 @@
 The Monty Hall problem simulator parameterizable with soops.
 
 https://en.wikipedia.org/wiki/Monty_Hall_problem
+
+soops-run -r 1 -n 3 -o output "python='python3', output_dir='output/%s', --num=[100,1000,10000], --repeat=[5,20], --switch=['@undefined', '@defined'], --host=['random', 'first'], --silent=@defined, --no-show=@defined" examples/monty_hall.py
 """
 from argparse import ArgumentParser
 import os
@@ -16,7 +18,8 @@ from soops import output
 
 def get_run_info():
     run_cmd = """
-    {python} monty_hall.py --num={--num} --repeat={--repeat} {output_dir}
+    {python} examples/monty_hall.py --num={--num} --repeat={--repeat}
+    {output_dir}
     """
     run_cmd = ' '.join(run_cmd.split())
 
@@ -26,10 +29,11 @@ def get_run_info():
         '--host' : ' --host={--host}',
         '--seed' : ' --seed={--seed}',
         '--plot-opts' : ' --plot-opts={--plot-opts}',
+        '--no-show' : ' --no-show',
         '--silent' : ' --silent',
     }
 
-    is_finished_basename = 'fit.png'
+    is_finished_basename = 'wins.png'
     output_dir_key = 'output_dir'
 
     return run_cmd, opt_args, output_dir_key, is_finished_basename
@@ -91,12 +95,12 @@ def main():
     output_dir = options.output_dir
 
     output.prefix = 'monty_hall:'
-    output.set_output(filename=os.path.join(output_dir,'output_log.txt'),
-                      combined=options.silent == False)
+    filename = os.path.join(output_dir, 'output_log.txt')
+    so.ensure_path(filename)
+    output.set_output(filename=filename, combined=options.silent == False)
 
     options.plot_opts = so.parse_as_dict(options.plot_opts)
     filename = os.path.join(output_dir, 'options.txt')
-    so.ensure_path(filename)
     so.save_options(filename, [('options', vars(options))],
                  quote_command_line=True)
 
@@ -159,6 +163,8 @@ def main():
     ax.set_title('switch: {}, host strategy: {}, num: {}, repeat: {}, seed: {}'
                  .format(options.switch, options.host, options.num,
                          options.repeat, options.seed))
+    plt.tight_layout()
+    fig.savefig(os.path.join(output_dir, 'wins.png'), bbox_inches='tight')
 
     if options.show:
         plt.show()
