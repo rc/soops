@@ -31,9 +31,10 @@ def split_options(options, split_keys):
 
     return new_options
 
-def load_split_options(filename, split_keys, rdata=None):
-    _options = load_options(filename)
-    options = split_options(_options, split_keys)
+def load_split_options(filename, split_keys=None, rdata=None):
+    options = load_options(filename)
+    if split_keys is not None:
+        options = split_options(options, split_keys=split_keys)
     return options
 
 def scoop_outputs(info, directories):
