@@ -106,8 +106,8 @@ def main():
         is_finished = _is_finished
 
     if options.contract is not None:
-        options.contract = [ii.split('+')
-                            for ii in options.contract.split(',')]
+        options.contract = [[ii.strip() for ii in contract.split('+')]
+                            for contract in options.contract.split(',')]
 
     dconf = parse_as_dict(options.conf, free_word=True)
     key_order = sorted(dconf.keys())
