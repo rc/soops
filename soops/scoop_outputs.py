@@ -3,6 +3,7 @@
 Scoop output files.
 """
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+import sys
 import os.path as op
 from datetime import datetime
 import warnings
@@ -176,7 +177,13 @@ def main():
     if (options.results is None
         or not (op.exists(options.results) and op.isfile(options.results))):
 
-        scoop_info = script_mod.get_scoop_info()
+        if hasattr(script_mod, 'get_scoop_info'):
+            scoop_info = script_mod.get_scoop_info()
+
+        else:
+            output('no get_scoop_info() in {} script'.format(options.script))
+            return
+
         df, mdf = scoop_outputs(scoop_info, options.directories)
 
     else:
@@ -208,11 +215,15 @@ def main():
     store.close()
 
     if options.plugins:
-        plugin_info = script_mod.get_plugin_info()
-        run_plugins(plugin_info, df, options.output_dir)
+        if hasattr(script_mod, 'get_plugin_info'):
+            plugin_info = script_mod.get_plugin_info()
+            run_plugins(plugin_info, df, options.output_dir)
+
+        else:
+            output('no get_plugin_info() in {} script'.format(options.script))
 
     if options.shell:
         from soops.base import shell; shell()
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

@@ -3,6 +3,7 @@
 Run parametric studies.
 """
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+import sys
 import os
 import itertools
 import subprocess
@@ -98,7 +99,14 @@ def main():
     output.prefix = 'run:'
 
     script_mod = import_file(options.script)
-    run_cmd, opt_args, output_dir_key, _is_finished = script_mod.get_run_info()
+    if hasattr(script_mod, 'get_run_info'):
+        (run_cmd, opt_args, output_dir_key,
+         _is_finished) = script_mod.get_run_info()
+
+    else:
+        output('no get_run_info() in {} script'.format(options.script))
+        return
+
     if isinstance(_is_finished, str):
         is_finished = lambda x: os.path.exists(os.path.join(x, _is_finished))
 
@@ -180,4 +188,4 @@ def main():
         from soops.base import shell; shell()
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
