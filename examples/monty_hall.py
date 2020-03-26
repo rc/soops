@@ -22,7 +22,7 @@ Examples
 
   soops-scoop examples/monty_hall.py output/study/ -o output/study -r output/study/results.h5 --no-plugins --shell
 """
-from argparse import ArgumentParser
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import os
 import time
 from functools import partial
@@ -153,7 +153,8 @@ def main():
     default_plot_opts = ("linewidth=3,alpha=0.5")
     helps['plot_opts'] = helps['plot_opts'].format(default_plot_opts)
 
-    parser = ArgumentParser(description=__doc__.rstrip())
+    parser = ArgumentParser(description=__doc__.rstrip(),
+                            formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('output_dir', help=helps['output_dir'])
     parser.add_argument('--switch',
                         action='store_true', dest='switch',
