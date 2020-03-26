@@ -4,11 +4,27 @@ The Monty Hall problem simulator parameterizable with soops.
 
 https://en.wikipedia.org/wiki/Monty_Hall_problem
 
-soops-run -r 1 -n 3 -o output "python='python3', output_dir='output/%s', --num=[100,1000,10000], --repeat=[5,20], --switch=['@undefined', '@defined'], --host=['random', 'first'], --silent=@defined, --no-show=@defined" examples/monty_hall.py
+Examples
+--------
+
+- Direct runs::
+
+  python examples/monty_hall.py -h
+  python examples/monty_hall.py output
+  python examples/monty_hall.py --switch output
+  python examples/monty_hall.py --num=10000 output
+
+- A parametric study::
+
+  soops-run -r 1 -n 3 -c='--repeat + --switch + --seed' -o output "python='python3', output_dir='output/study/%s', --num=[100,1000,10000], --repeat=[5,20,5,20], --switch=['@undefined', '@defined', '@undefined', '@defined'], --seed=['@undefined', '@undefined', 12345, 12345], --host=['random', 'first'], --silent=@defined, --no-show=@defined" examples/monty_hall.py
+
+  soops-scoop examples/monty_hall.py output/study/ -o output/study -r output/study/results.h5
+
 """
 from argparse import ArgumentParser
 import os
 import time
+from functools import partial
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -37,6 +53,39 @@ def get_run_info():
     output_dir_key = 'output_dir'
 
     return run_cmd, opt_args, output_dir_key, is_finished_basename
+
+def get_scoop_info():
+    import soops.scoop_outputs as sc
+
+    info = [
+        ('options.txt', partial(
+            sc.load_split_options,
+            split_keys=None,
+        )),
+        ('output_log.txt', scrape_output),
+    ]
+
+    return info
+
+def scrape_output(filename, rdata=None):
+    out = {}
+    with open(filename, 'r') as fd:
+        repeat = rdata['repeat']
+        for ii in range(4):
+            next(fd)
+
+        elapsed = []
+        win_rate = []
+        for ii in range(repeat):
+            line = next(fd).split()
+            elapsed.append(float(line[-1]))
+            line = next(fd).split()
+            win_rate.append(float(line[-1]))
+
+        out['elapsed'] = np.array(elapsed)
+        out['win_rate'] = np.array(win_rate)
+
+    return out
 
 helps = {
     'output_dir'
