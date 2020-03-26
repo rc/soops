@@ -4,7 +4,7 @@ Run parametric studies.
 """
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import sys
-import os
+import os.path as op
 import itertools
 import subprocess
 
@@ -108,7 +108,7 @@ def main():
         return
 
     if isinstance(_is_finished, str):
-        is_finished = lambda x: os.path.exists(os.path.join(x, _is_finished))
+        is_finished = lambda x: op.exists(op.join(x, _is_finished))
 
     else:
         is_finished = _is_finished
@@ -120,13 +120,12 @@ def main():
     dconf = parse_as_dict(options.conf, free_word=True)
     key_order = sorted(dconf.keys())
 
-    filename = os.path.join(options.output_dir, 'options.txt')
+    filename = op.join(options.output_dir, 'options.txt')
     ensure_path(filename)
     save_options(filename, [('options', vars(options))],
                  quote_command_line=True)
 
-    output.set_output(filename=os.path.join(options.output_dir,
-                                            'output_log.txt'),
+    output.set_output(filename=op.join(options.output_dir, 'output_log.txt'),
                       combined=options.verbose)
 
     recompute = options.recompute
