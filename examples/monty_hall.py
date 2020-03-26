@@ -16,10 +16,11 @@ Examples
 
 - A parametric study::
 
-  soops-run -r 1 -n 3 -c='--repeat + --switch + --seed' -o output "python='python3', output_dir='output/study/%s', --num=[100,1000,10000], --repeat=[5,20,5,20], --switch=['@undefined', '@defined', '@undefined', '@defined'], --seed=['@undefined', '@undefined', 12345, 12345], --host=['random', 'first'], --silent=@defined, --no-show=@defined" examples/monty_hall.py
+  soops-run -r 1 -n 3 -c='--switch + --seed' -o output "python='python3', output_dir='output/study/%s', --num=[100,1000,10000], --repeat=[10,20], --switch=['@undefined', '@defined', '@undefined', '@defined'], --seed=['@undefined', '@undefined', 12345, 12345], --host=['random', 'first'], --silent=@defined, --no-show=@defined" examples/monty_hall.py
 
-  soops-scoop examples/monty_hall.py output/study/ -o output/study -r output/study/results.h5
+  soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r output/study/results.h5
 
+  soops-scoop examples/monty_hall.py output/study/ -o output/study -r output/study/results.h5 --no-plugins --shell
 """
 from argparse import ArgumentParser
 import os
@@ -30,6 +31,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import soops as so
+import soops.scoop_outputs as sc
 from soops import output
 
 def get_run_info():
@@ -55,8 +57,6 @@ def get_run_info():
     return run_cmd, opt_args, output_dir_key, is_finished_basename
 
 def get_scoop_info():
-    import soops.scoop_outputs as sc
-
     info = [
         ('options.txt', partial(
             sc.load_split_options,
@@ -86,6 +86,46 @@ def scrape_output(filename, rdata=None):
         out['win_rate'] = np.array(win_rate)
 
     return out
+
+def get_plugin_info():
+    info = [plot_win_rates, show_figures]
+
+    return info
+
+def plot_win_rates(df, data=None):
+    import soops.plot_selected as sps
+
+    df = df.copy()
+    df['seed'] = df['seed'].where(df['seed'].notnull(), -1)
+
+    par_cols = sc.get_parametric_columns(df)
+    omit = {'win_rate', 'output_dir', 'elapsed'}
+    uniques = sc.get_uniques(
+        df, [col for col in par_cols if not col in omit]
+    )
+    for key, val in uniques.items():
+        output(key, val)
+
+    selected = sps.normalize_selected(uniques)
+    styles = {key : {} for key in selected.keys()}
+    styles['seed'] = {'alpha' : [0.9, 0.1]}
+    styles['num'] = {'color' : 'viridis'}
+    styles['repeat'] = {'lw' : np.linspace(3, 2, len(selected['repeat']))}
+    styles['host'] = {'ls' : ['-', ':']}
+    styles['switch'] = {'marker' : ['x', 'o'], 'mfc' : 'None', 'ms' : 10}
+
+    styles = sps.setup_plot_styles(selected, styles)
+
+    fig, ax = plt.subplots()
+    sps.plot_selected(ax, df, 'win_rate', selected, {}, styles)
+    fig.tight_layout()
+    fig.savefig(os.path.join(data.output_dir, 'win_rates.png'))
+
+    return data
+
+def show_figures(df, data=None):
+    plt.show()
+    return data
 
 helps = {
     'output_dir'
