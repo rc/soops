@@ -50,6 +50,9 @@ def setup_plot_styles(selected, raw_styles):
                 mi, ma = map(float, svals.split(','))
                 styles[key][skey] = np.linspace(mi, ma, len(selected[key]))
 
+            elif np.isscalar(svals):
+                styles[key][skey] = [svals]
+
     return styles
 
 def get_plot_style(indices, styles):
