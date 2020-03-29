@@ -88,6 +88,8 @@ def scrape_output(filename, rdata=None):
     return out
 
 def get_plugin_info():
+    from soops.plugins import show_figures
+
     info = [plot_win_rates, show_figures]
 
     return info
@@ -121,10 +123,6 @@ def plot_win_rates(df, data=None):
     fig.tight_layout()
     fig.savefig(os.path.join(data.output_dir, 'win_rates.png'))
 
-    return data
-
-def show_figures(df, data=None):
-    plt.show()
     return data
 
 helps = {
