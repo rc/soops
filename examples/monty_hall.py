@@ -100,15 +100,13 @@ def plot_win_rates(df, data=None):
     df = df.copy()
     df['seed'] = df['seed'].where(df['seed'].notnull(), -1)
 
-    par_cols = sc.get_parametric_columns(df)
     omit = {'win_rate', 'output_dir', 'elapsed'}
-    uniques = sc.get_uniques(
-        df, [col for col in par_cols if not col in omit]
-    )
+    uniques = sc.get_parametric_uniques(df, omit=omit)
     for key, val in uniques.items():
         output(key, val)
 
     selected = sps.normalize_selected(uniques)
+
     styles = {key : {} for key in selected.keys()}
     styles['seed'] = {'alpha' : [0.9, 0.1]}
     styles['num'] = {'color' : 'viridis'}
