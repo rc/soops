@@ -123,6 +123,14 @@ def get_uniques(df, columns):
 
     return uniques
 
+def get_parametric_uniques(df, omit=None):
+    if omit is None: omit = {}
+
+    par_cols = get_parametric_columns(df)
+    uniques = get_uniques(df, [col for col in par_cols if col not in omit])
+
+    return uniques
+
 def run_plugins(info, df, output_dir):
     if not len(info):
         return
