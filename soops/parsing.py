@@ -52,16 +52,6 @@ cvt_array_index = lambda toks: int(toks[0]) if len(toks) == 1 \
 array_index.setParseAction(cvt_array_index)
 array_braces = lbrack + array_index + rbrack
 
-def create_bnf(allow_tuple=False, free_word=False):
-    word = word_free if free_word else word_strict
-    defs = get_standard_type_defs(word)
-    empty = Empty()
-    empty.setParseAction( lambda toks: [{}])
-    if allow_tuple:
-        return defs['dict'].inner | defs['tuple'].inner | empty
-    else:
-        return defs['dict'].inner | empty
-
 def list_of(element, *elements):
     """
     Return lexical element that parses a list of items. The items can be a one
@@ -128,6 +118,38 @@ def get_standard_type_defs(word=word_free):
 
     return defs
 
+def create_list_bnf(free_word=False):
+    word = word_free if free_word else word_strict
+    defs = get_standard_type_defs(word)
+    arg = defs['list_item'].copy()
+
+    return list_of(arg) | Empty()
+
+def parse_as_list(string, free_word=False):
+    """
+    Parse `string` and return a dictionary.
+    """
+    if string is None:
+        return []
+
+    if isinstance(string, list):
+        return string
+
+    parser = create_list_bnf(free_word=free_word)
+    out = list(parser.parseString(string, parseAll=True))
+
+    return out
+
+def create_dict_bnf(allow_tuple=False, free_word=False):
+    word = word_free if free_word else word_strict
+    defs = get_standard_type_defs(word)
+    empty = Empty()
+    empty.setParseAction( lambda toks: [{}])
+    if allow_tuple:
+        return defs['dict'].inner | defs['tuple'].inner | empty
+    else:
+        return defs['dict'].inner | empty
+
 def parse_as_dict(string, allow_tuple=False, free_word=False):
     """
     Parse `string` and return a dictionary.
@@ -138,7 +160,7 @@ def parse_as_dict(string, allow_tuple=False, free_word=False):
     if isinstance(string, dict):
         return string
 
-    parser = create_bnf(allow_tuple=allow_tuple, free_word=free_word)
+    parser = create_dict_bnf(allow_tuple=allow_tuple, free_word=free_word)
 
     out = {}
     for r in parser.parseString(string, parseAll=True):
