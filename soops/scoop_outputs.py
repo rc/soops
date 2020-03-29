@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 
 from soops.base import output, import_file, Struct
+from soops.parsing import parse_as_list
 from soops.ioutils import load_options, locate_files, ensure_path
 
 def load_array(filename, key='array', load_kwargs={}, rdata=None):
@@ -135,12 +136,13 @@ def run_plugins(info, df, output_dir):
     if not len(info):
         return
 
-    output('calling plugins:')
+    output('run plugins:')
     par_cols = get_parametric_columns(df)
     data = Struct(par_cols=par_cols, output_dir=output_dir)
     for fun in info:
-        output(fun.__name__)
+        output('running {}()...'.format(fun.__name__))
         data = fun(df, data=data)
+        output('...done')
 
     return data
 
@@ -148,6 +150,8 @@ helps = {
     'sort' : 'column keys for sorting of DataFrame rows',
     'results' : 'reuse previously scooped results file',
     'no_plugins' : 'do not call post-processing plugins',
+    'use_plugins' : 'use only the named plugins (no effect with --no-plugins)',
+    'omit_plugins' : 'omit the named plugins (no effect with --no-plugins)',
     'shell' : 'run ipython shell after all computations',
     'output_dir' : 'output directory [default: %(default)s]',
     'script' : 'the script that was run to generate the results',
@@ -164,8 +168,15 @@ def main():
                         action='store', dest='results',
                         default=None, help=helps['results'])
     parser.add_argument('--no-plugins',
-                        action='store_false', dest='plugins',
+                        action='store_false', dest='call_plugins',
                         default=True, help=helps['no_plugins'])
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--use-plugins', metavar='name[,name,...]',
+                       action='store', dest='use_plugins',
+                       default=None, help=helps['use_plugins'])
+    group.add_argument('--omit-plugins', metavar='name[,name,...]',
+                       action='store', dest='omit_plugins',
+                       default=None, help=helps['omit_plugins'])
     parser.add_argument('--shell',
                         action='store_true', dest='shell',
                         default=False, help=helps['shell'])
@@ -178,7 +189,13 @@ def main():
 
     script_mod = import_file(options.script)
 
-    options.sort = options.sort.split(',') if options.sort is not None else []
+    options.sort = parse_as_list(options.sort)
+
+    if options.use_plugins is not None:
+        options.use_plugins = parse_as_list(options.use_plugins)
+
+    if options.omit_plugins is not None:
+        options.omit_plugins = parse_as_list(options.omit_plugins)
 
     output.prefix = ''
 
@@ -222,9 +239,19 @@ def main():
     store.put('mdf', mdf)
     store.close()
 
-    if options.plugins:
+    if options.call_plugins:
         if hasattr(script_mod, 'get_plugin_info'):
             plugin_info = script_mod.get_plugin_info()
+            output('available plugins:', [fun.__name__ for fun in plugin_info])
+
+            if options.use_plugins is not None:
+                plugin_info = [fun for fun in plugin_info
+                               if fun.__name__ in options.use_plugins]
+
+            elif options.omit_plugins is not None:
+                plugin_info = [fun for fun in plugin_info
+                               if fun.__name__ not in options.omit_plugins]
+
             run_plugins(plugin_info, df, options.output_dir)
 
         else:
