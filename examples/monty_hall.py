@@ -110,7 +110,8 @@ def plot_win_rates(df, data=None):
     styles = {key : {} for key in selected.keys()}
     styles['seed'] = {'alpha' : [0.9, 0.1]}
     styles['num'] = {'color' : 'viridis'}
-    styles['repeat'] = {'lw' : np.linspace(3, 2, len(selected['repeat']))}
+    styles['repeat'] = {'lw' : np.linspace(3, 2,
+                                           len(selected.get('repeat', [1])))}
     styles['host'] = {'ls' : ['-', ':']}
     styles['switch'] = {'marker' : ['x', 'o'], 'mfc' : 'None', 'ms' : 10}
 
