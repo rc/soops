@@ -71,7 +71,7 @@ helps = {
     'the script to run',
 }
 
-def main():
+def parse_args(args=None):
     parser = ArgumentParser(description=__doc__,
                             formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('-r', '--recompute', action='store', type=int,
@@ -94,8 +94,15 @@ def main():
                         default='output', help=helps['output_dir'])
     parser.add_argument('conf', help=helps['conf'])
     parser.add_argument('script', help=helps['script'])
-    options = parser.parse_args()
+    options = parser.parse_args(args=args)
 
+    if options.contract is not None:
+        options.contract = [[ii.strip() for ii in contract.split('+')]
+                            for contract in options.contract.split(',')]
+
+    return options
+
+def run_parametric(options):
     output.prefix = 'run:'
 
     script_mod = import_file(options.script)
@@ -112,10 +119,6 @@ def main():
 
     else:
         is_finished = _is_finished
-
-    if options.contract is not None:
-        options.contract = [[ii.strip() for ii in contract.split('+')]
-                            for contract in options.contract.split(',')]
 
     dconf = parse_as_dict(options.conf, free_word=True)
     key_order = sorted(dconf.keys())
@@ -185,6 +188,10 @@ def main():
 
     if options.shell:
         from soops.base import shell; shell()
+
+def main():
+    options = parse_args()
+    return run_parametric(options)
 
 if __name__ == '__main__':
     sys.exit(main())
