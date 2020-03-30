@@ -33,9 +33,12 @@ setup(
     packages=['soops'],
     python_requires='>=3.5',
     install_requires=[
-        'dask',
-        'pandas',
         'pyparsing',
+        'dask',
+        'distributed',
+        'pandas',
+        'tables',
+        'matplotlib',
     ],
     entry_points={
         'console_scripts': [
