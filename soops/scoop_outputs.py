@@ -39,7 +39,7 @@ def load_split_options(filename, split_keys=None, rdata=None):
         options = split_options(options, split_keys=split_keys)
     return options
 
-def scoop_outputs(info, directories):
+def apply_scoops(info, directories):
     if not len(info):
         return pd.DataFrame({}), pd.DataFrame({})
 
@@ -158,7 +158,7 @@ helps = {
     'directories' : 'results directories',
 }
 
-def main():
+def parse_args(args=None):
     parser = ArgumentParser(description=__doc__,
                             formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('-s', '--sort', metavar='column[,columns,...]',
@@ -185,9 +185,7 @@ def main():
                         default='.', help=helps['output_dir'])
     parser.add_argument('script', help=helps['script'])
     parser.add_argument('directories', nargs='+', help=helps['directories'])
-    options = parser.parse_args()
-
-    script_mod = import_file(options.script)
+    options = parser.parse_args(args=args)
 
     options.sort = parse_as_list(options.sort)
 
@@ -197,7 +195,12 @@ def main():
     if options.omit_plugins is not None:
         options.omit_plugins = parse_as_list(options.omit_plugins)
 
+    return options
+
+def scoop_outputs(options):
     output.prefix = ''
+
+    script_mod = import_file(options.script)
 
     if (options.results is None
         or not (op.exists(options.results) and op.isfile(options.results))):
@@ -209,7 +212,7 @@ def main():
             output('no get_scoop_info() in {} script'.format(options.script))
             return
 
-        df, mdf = scoop_outputs(scoop_info, options.directories)
+        df, mdf = apply_scoops(scoop_info, options.directories)
 
     else:
         df = pd.read_hdf(options.results, 'df')
@@ -259,6 +262,10 @@ def main():
 
     if options.shell:
         from soops.base import shell; shell()
+
+def main():
+    options = parse_args()
+    return scoop_outputs(options)
 
 if __name__ == '__main__':
     sys.exit(main())
