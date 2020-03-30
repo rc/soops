@@ -30,6 +30,9 @@ def get_indices_in_selected(selected, row, compares):
 def setup_plot_styles(selected, raw_styles):
     styles = raw_styles.copy()
     for key, style in raw_styles.items():
+        if not key in selected:
+            continue
+
         for skey, svals in style.items():
             if skey == 'color' and isinstance(svals, str):
                 cmap = getattr(plt.cm, svals)
@@ -62,7 +65,9 @@ def get_plot_style(indices, styles):
             if skey in style_kwargs:
                 output('style key "{}" of "{}" already in use!'
                        .format(skey, key))
-            style_kwargs[skey] = style_vals[indices[key] % len(style_vals)]
+
+            if key in indices:
+                style_kwargs[skey] = style_vals[indices[key] % len(style_vals)]
 
     return style_kwargs
 
