@@ -1,0 +1,7 @@
+recursive-include examples *.py
+recursive-include tests *.py
+include LICENSE.txt
+include MANIFEST.in
+include README.rst
+include setup.py
+include tox.ini
