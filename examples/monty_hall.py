@@ -36,7 +36,8 @@ from soops import output
 
 def get_run_info():
     run_cmd = """
-    {python} examples/monty_hall.py --num={--num} --repeat={--repeat}
+    {python} {script_dir}/monty_hall.py
+    --num={--num} --repeat={--repeat}
     {output_dir}
     """
     run_cmd = ' '.join(run_cmd.split())
