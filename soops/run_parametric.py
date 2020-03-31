@@ -159,6 +159,8 @@ def run_parametric(options):
         podir = all_pars[output_dir_key] % it
         all_pars[output_dir_key] = podir
 
+        all_pars['script_dir'] = op.normpath(op.dirname(options.script))
+
         if (recompute > 1) or (recompute and not is_finished(podir)):
             cmd = make_cmd(run_cmd, opt_args, all_pars)
             output(cmd)
