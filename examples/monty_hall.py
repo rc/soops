@@ -52,8 +52,8 @@ def get_run_info():
         '--silent' : ' --silent',
     }
 
-    is_finished_basename = 'wins.png'
     output_dir_key = 'output_dir'
+    is_finished_basename = 'wins.png'
 
     return run_cmd, opt_args, output_dir_key, is_finished_basename
 
@@ -118,7 +118,7 @@ def plot_win_rates(df, data=None):
 
     styles = sps.setup_plot_styles(selected, styles)
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8, 8))
     sps.plot_selected(ax, df, 'win_rate', selected, {}, styles)
     fig.tight_layout()
     fig.savefig(os.path.join(data.output_dir, 'win_rates.png'))
