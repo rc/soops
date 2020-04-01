@@ -53,7 +53,7 @@ def check_contracted(all_pars, options, key_order):
 helps = {
     'recompute' :
      """recomputation strategy: 0: do not recompute,
-        1: recompute only if a specified log file is missing,
+        1: recompute only if is_finished() returns False,
         2: always recompute [default:  %(default)s]""",
     'contract' :
     'list of option keys that should be contracted to vary in lockstep',
