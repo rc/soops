@@ -6,6 +6,23 @@ soops = scoop output of parametric studies
 Utilities to run parametric studies in parallel using dask, and to scoop
 the output files produced by the studies into a pandas dataframe.
 
+Installation
+------------
+
+The latest relese::
+
+  pip install soops
+
+The source code of the development version in git::
+
+  git clone https://github.com/rc/soops.git
+  cd soops
+  pip install .
+
+or the development version via pip::
+
+  pip install git+https://github.com/rc/soops.git
+
 Example
 -------
 
