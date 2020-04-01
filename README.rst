@@ -9,7 +9,7 @@ the output files produced by the studies into a pandas dataframe.
 Installation
 ------------
 
-The latest relese::
+The latest release::
 
   pip install soops
 
