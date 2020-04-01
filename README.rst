@@ -23,6 +23,21 @@ or the development version via pip::
 
   pip install git+https://github.com/rc/soops.git
 
+Testing
+-------
+
+Install pytest::
+
+  pip install pytest
+
+Install `soops` from sources (in the current directory)::
+
+  pip install .
+
+Run the tests::
+
+  pytest .
+
 Example
 -------
 
