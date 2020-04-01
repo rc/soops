@@ -120,6 +120,8 @@ def plot_win_rates(df, data=None):
 
     fig, ax = plt.subplots(figsize=(8, 8))
     sps.plot_selected(ax, df, 'win_rate', selected, {}, styles)
+    ax.set_xlabel('simulation number')
+    ax.set_ylabel('win rate')
     fig.tight_layout()
     fig.savefig(os.path.join(data.output_dir, 'win_rates.png'))
 
