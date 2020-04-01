@@ -9,7 +9,26 @@ the output files produced by the studies into a pandas dataframe.
 Example
 -------
 
-Suppose we have a script that takes a number of command line arguments::
+Before we begin - TL;DR:
+
+- Run a script in parallel with many combinations of parameters.
+- Scoop all the results in many output directories into a big ``DataFrame``.
+- Work with the ``DataFrame``.
+
+A Script
+''''''''
+
+Suppose we have a script that takes a number of command line arguments. The
+actual arguments are not so important, neither what the script does.
+Nevertheless, to have something to work with, let us simulate the `Monty Hall
+problem <https://en.wikipedia.org/wiki/Monty_Hall_problem>`_ in Python.
+
+For the first reading of the example below, it is advisable not to delve in
+details of the script outputs and code listings and just read the text to get
+an overall idea. After understanding the idea, return to the details, or just
+have a look at the `complete example script <examples/monty_hall.py>`_.
+
+This is our script and its arguments::
 
   $ python ./examples/monty_hall.py -h
   usage: monty_hall.py [-h] [--switch] [--host {random,first}] [--num int]
