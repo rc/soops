@@ -103,25 +103,42 @@ def get_legend_items(selected, styles, used=None):
 
     return lines, labels
 
+def get_row_style(ax, df, ir, selected, compares, styles, **plot_kwargs):
+    indices = get_indices_in_selected(selected, df.iloc[ir], compares)
+    if indices is None: return None, None
+
+    style_kwargs = get_plot_style(indices, styles)
+    style_kwargs.update(plot_kwargs)
+
+    return style_kwargs, indices
+
+def update_used(used, indices):
+    for key, indx in indices.items():
+        used[key].add(indices[key])
+
+    return used
+
+def add_legend(ax, selected, styles, used):
+    lines, labels = get_legend_items(selected, styles, used=used)
+    leg = ax.legend(lines, labels, loc='best')
+    if leg is not None:
+        leg.get_frame().set_alpha(0.5)
+
 def plot_selected(ax, df, column, selected, compares, styles, **plot_kwargs):
     if ax is None:
         _, ax = plt.subplots()
 
     used = {key : set() for key in selected.keys()}
     for ir in range(len(df)):
-        indices = get_indices_in_selected(selected, df.iloc[ir], compares)
+        style_kwargs, indices = get_row_style(
+            ax, df, ir, selected, compares, styles, **plot_kwargs
+        )
         if indices is None: continue
 
-        style_kwargs = get_plot_style(indices, styles)
-        style_kwargs.update(plot_kwargs)
         ax.plot(df.loc[ir, column], **style_kwargs)
 
-        for key, indx in indices.items():
-            used[key].add(indices[key])
+        update_used(used, indices)
 
-    lines, labels = get_legend_items(selected, styles, used=used)
-    leg = ax.legend(lines, labels, loc='best')
-    if leg is not None:
-        leg.get_frame().set_alpha(0.5)
+    add_legend(ax, selected, styles, used)
 
     return ax
