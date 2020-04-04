@@ -103,6 +103,11 @@ def get_legend_items(selected, styles, used=None):
                 kw['color'] = (0.5, 0.5, 0.5)
 
             line = plt.Line2D((0,1), (0,0), **kw)
+
+            if ((line.get_linestyle() == 'None') and
+                (line.get_marker() == 'None')):
+                line.set_linestyle('-')
+
             lines.append(line)
             labels.append(key + ': {}'.format(val))
 
