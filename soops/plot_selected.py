@@ -71,6 +71,15 @@ def get_plot_style(indices, styles):
 
     return style_kwargs
 
+def get_row_style(ax, df, ir, selected, compares, styles, **plot_kwargs):
+    indices = get_indices_in_selected(selected, df.iloc[ir], compares)
+    if indices is None: return None, None
+
+    style_kwargs = get_plot_style(indices, styles)
+    style_kwargs.update(plot_kwargs)
+
+    return style_kwargs, indices
+
 def get_legend_items(selected, styles, used=None):
     used_selected = selected
     if used is not None:
@@ -103,18 +112,12 @@ def get_legend_items(selected, styles, used=None):
 
     return lines, labels
 
-def get_row_style(ax, df, ir, selected, compares, styles, **plot_kwargs):
-    indices = get_indices_in_selected(selected, df.iloc[ir], compares)
-    if indices is None: return None, None
-
-    style_kwargs = get_plot_style(indices, styles)
-    style_kwargs.update(plot_kwargs)
-
-    return style_kwargs, indices
-
 def update_used(used, indices):
+    if used is None:
+        used = {}
+
     for key, indx in indices.items():
-        used[key].add(indices[key])
+        used.setdefault(key, set()).add(indices[key])
 
     return used
 
@@ -128,16 +131,15 @@ def plot_selected(ax, df, column, selected, compares, styles, **plot_kwargs):
     if ax is None:
         _, ax = plt.subplots()
 
-    used = {key : set() for key in selected.keys()}
+    used = None
     for ir in range(len(df)):
         style_kwargs, indices = get_row_style(
             ax, df, ir, selected, compares, styles, **plot_kwargs
         )
         if indices is None: continue
+        used = update_used(used, indices)
 
         ax.plot(df.loc[ir, column], **style_kwargs)
-
-        update_used(used, indices)
 
     add_legend(ax, selected, styles, used)
 
