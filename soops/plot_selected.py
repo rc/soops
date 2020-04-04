@@ -81,19 +81,15 @@ def get_row_style(ax, df, ir, selected, compares, styles, **plot_kwargs):
     return style_kwargs, indices
 
 def get_legend_items(selected, styles, used=None):
-    used_selected = selected
-    if used is not None:
-        used_selected = {key : [val for ii, val in enumerate(vals)
-                              if ii in used[key]]
-                       for key, vals in selected.items()}
-
     lines = []
     labels = []
-    for key, svals in used_selected.items():
+    for key, svals in selected.items():
         key_styles = styles[key]
         if not len(key_styles): continue
 
         for iv, val in enumerate(svals):
+            if iv not in used[key]: continue
+
             kw = {}
             for skey, style_vals in key_styles.items():
                 kw[skey] = style_vals[iv % len(style_vals)]
