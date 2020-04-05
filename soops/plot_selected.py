@@ -80,7 +80,10 @@ def get_row_style(ax, df, ir, selected, compares, styles, **plot_kwargs):
 
     return style_kwargs, indices
 
-def get_legend_items(selected, styles, used=None):
+def get_legend_items(selected, styles, used=None, format_labels=None):
+    if format_labels is None:
+        format_labels = lambda key, iv, val: '{}'.format(val)
+
     lines = []
     labels = []
     for key, svals in selected.items():
@@ -109,7 +112,7 @@ def get_legend_items(selected, styles, used=None):
                 line.set_linestyle('-')
 
             lines.append(line)
-            labels.append(key + ': {}'.format(val))
+            labels.append(key + ': ' + format_labels(key, iv, val))
 
     return lines, labels
 
@@ -122,13 +125,16 @@ def update_used(used, indices):
 
     return used
 
-def add_legend(ax, selected, styles, used):
-    lines, labels = get_legend_items(selected, styles, used=used)
+def add_legend(ax, selected, styles, used, format_labels=None):
+    lines, labels = get_legend_items(selected, styles, used=used,
+                                     format_labels=format_labels)
+
     leg = ax.legend(lines, labels, loc='best')
     if leg is not None:
         leg.get_frame().set_alpha(0.5)
 
-def plot_selected(ax, df, column, selected, compares, styles, **plot_kwargs):
+def plot_selected(ax, df, column, selected, compares, styles,
+                  format_labels=None, **plot_kwargs):
     if ax is None:
         _, ax = plt.subplots()
 
@@ -142,6 +148,6 @@ def plot_selected(ax, df, column, selected, compares, styles, **plot_kwargs):
 
         ax.plot(df.loc[ir, column], **style_kwargs)
 
-    add_legend(ax, selected, styles, used)
+    add_legend(ax, selected, styles, used, format_labels=format_labels)
 
     return ax
