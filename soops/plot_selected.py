@@ -82,7 +82,7 @@ def get_row_style(ax, df, ir, selected, compares, styles, **plot_kwargs):
 
 def get_legend_items(selected, styles, used=None, format_labels=None):
     if format_labels is None:
-        format_labels = lambda key, iv, val: '{}'.format(val)
+        format_labels = lambda key, iv, val: '{}: {}'.format(key, val)
 
     lines = []
     labels = []
@@ -112,7 +112,7 @@ def get_legend_items(selected, styles, used=None, format_labels=None):
                 line.set_linestyle('-')
 
             lines.append(line)
-            labels.append(key + ': ' + format_labels(key, iv, val))
+            labels.append(format_labels(key, iv, val))
 
     return lines, labels
 
