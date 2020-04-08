@@ -71,7 +71,7 @@ def get_plot_style(indices, styles):
 
     return style_kwargs
 
-def get_row_style(ax, df, ir, selected, compares, styles, **plot_kwargs):
+def get_row_style(df, ir, selected, compares, styles, **plot_kwargs):
     indices = get_indices_in_selected(selected, df.iloc[ir], compares)
     if indices is None: return None, None
 
@@ -141,7 +141,7 @@ def plot_selected(ax, df, column, selected, compares, styles,
     used = None
     for ir in range(len(df)):
         style_kwargs, indices = get_row_style(
-            ax, df, ir, selected, compares, styles, **plot_kwargs
+            df, ir, selected, compares, styles, **plot_kwargs
         )
         if indices is None: continue
         used = update_used(used, indices)
