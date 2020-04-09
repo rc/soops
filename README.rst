@@ -157,8 +157,8 @@ describing the arguments of our script:
            '--silent' : ' --silent',
        }
 
-       is_finished_basename = 'wins.png'
        output_dir_key = 'output_dir'
+       is_finished_basename = 'wins.png'
 
        return run_cmd, opt_args, output_dir_key, is_finished_basename
 
