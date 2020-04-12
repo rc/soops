@@ -189,13 +189,13 @@ Putting `get_run_info()` into our script allows running a parametric study using
   $ soops-run -h
   usage: soops-run [-h] [-r {0,1,2}] [-c key1+key2+..., ...] [-n int] [--silent]
                    [--shell] [-o path]
-                   conf script
+                   conf run_mod
 
   Run parametric studies.
 
   positional arguments:
     conf                  a dict-like parametric study configuration
-    script                the script to run
+    run_mod               the importable script/module with get_run_info()
 
   optional arguments:
     -h, --help            show this help message and exit
@@ -312,15 +312,16 @@ provided:
 
 Then we are ready to run ``soops-scoop``::
 
+  $ soops-scoop -h
   usage: soops-scoop [-h] [-s column[,columns,...]] [-r filename] [--no-plugins]
                      [--use-plugins name[,name,...] | --omit-plugins
-                     name[,name,...]] [--shell] [-o path]
-                     script directories [directories ...]
+                     name[,name,...]] [-p module] [--shell] [-o path]
+                     scoop_mod directories [directories ...]
 
   Scoop output files.
 
   positional arguments:
-    script                the script that was run to generate the results
+    scoop_mod             the importable script/module with get_scoop_info()
     directories           results directories
 
   optional arguments:
@@ -335,6 +336,9 @@ Then we are ready to run ``soops-scoop``::
                           plugins)
     --omit-plugins name[,name,...]
                           omit the named plugins (no effect with --no-plugins)
+    -p module, --plugin-mod module
+                          if given, the module that has get_plugin_info()
+                          instead of scoop_mod
     --shell               run ipython shell after all computations
     -o path, --output-dir path
                           output directory [default: .]
@@ -442,3 +446,11 @@ reuses the ``results.h5`` file and plots the combined results:
 
 .. image:: doc/readme/win_rates.png
    :alt: win_rates.png
+
+Notes
+'''''
+
+- The `get_run_info()`, `get_scoop_info()` and `get_plugin_info()` info
+  function can be in different modules.
+- The script that is being parameterized need not be a Python module - any
+  executable which can be run from a command line can be used.
