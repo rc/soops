@@ -154,9 +154,11 @@ helps = {
     'no_plugins' : 'do not call post-processing plugins',
     'use_plugins' : 'use only the named plugins (no effect with --no-plugins)',
     'omit_plugins' : 'omit the named plugins (no effect with --no-plugins)',
+    'plugin_mod' :
+    'if given, the module that has get_plugin_info() instead of scoop_mod',
     'shell' : 'run ipython shell after all computations',
     'output_dir' : 'output directory [default: %(default)s]',
-    'script' : 'the script that was run to generate the results',
+    'scoop_mod' : 'the importable script/module with get_scoop_info()',
     'directories' : 'results directories',
 }
 
@@ -179,13 +181,16 @@ def parse_args(args=None):
     group.add_argument('--omit-plugins', metavar='name[,name,...]',
                        action='store', dest='omit_plugins',
                        default=None, help=helps['omit_plugins'])
+    parser.add_argument('-p', '--plugin-mod', metavar='module',
+                        action='store', dest='plugin_mod',
+                        default=None, help=helps['plugin_mod'])
     parser.add_argument('--shell',
                         action='store_true', dest='shell',
                         default=False, help=helps['shell'])
     parser.add_argument('-o', '--output-dir', metavar='path',
                         action='store', dest='output_dir',
                         default='.', help=helps['output_dir'])
-    parser.add_argument('script', help=helps['script'])
+    parser.add_argument('scoop_mod', help=helps['scoop_mod'])
     parser.add_argument('directories', nargs='+', help=helps['directories'])
     options = parser.parse_args(args=args)
 
@@ -202,16 +207,17 @@ def parse_args(args=None):
 def scoop_outputs(options):
     output.prefix = ''
 
-    script_mod = import_file(options.script)
+    scoop_mod = import_file(options.scoop_mod)
 
     if (options.results is None
         or not (op.exists(options.results) and op.isfile(options.results))):
 
-        if hasattr(script_mod, 'get_scoop_info'):
-            scoop_info = script_mod.get_scoop_info()
+        if hasattr(scoop_mod, 'get_scoop_info'):
+            scoop_info = scoop_mod.get_scoop_info()
 
         else:
-            output('no get_scoop_info() in {} script'.format(options.script))
+            output('no get_scoop_info() in {}, exiting'
+                   .format(options.scoop_mod))
             return
 
         df, mdf = apply_scoops(scoop_info, options.directories)
@@ -245,8 +251,14 @@ def scoop_outputs(options):
     store.close()
 
     if options.call_plugins:
-        if hasattr(script_mod, 'get_plugin_info'):
-            plugin_info = script_mod.get_plugin_info()
+        if options.plugin_mod is not None:
+            plugin_mod = import_file(options.plugin_mod)
+
+        else:
+            plugin_mod = scoop_mod
+
+        if hasattr(plugin_mod, 'get_plugin_info'):
+            plugin_info = plugin_mod.get_plugin_info()
             output('available plugins:', [fun.__name__ for fun in plugin_info])
 
             if options.use_plugins is not None:
@@ -260,7 +272,7 @@ def scoop_outputs(options):
             run_plugins(plugin_info, df, options.output_dir)
 
         else:
-            output('no get_plugin_info() in {} script'.format(options.script))
+            output('no get_plugin_info() in {}'.format(plugin_mod.__name__))
 
     if options.shell:
         from soops.base import shell; shell()
