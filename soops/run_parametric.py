@@ -67,8 +67,8 @@ helps = {
     'output directory [default: %(default)s]',
     'conf' :
     'a dict-like parametric study configuration',
-    'script' :
-    'the script to run',
+    'run_mod' :
+    'the importable script/module with get_run_info()',
 }
 
 def parse_args(args=None):
@@ -93,7 +93,7 @@ def parse_args(args=None):
                         action='store', dest='output_dir',
                         default='output', help=helps['output_dir'])
     parser.add_argument('conf', help=helps['conf'])
-    parser.add_argument('script', help=helps['script'])
+    parser.add_argument('run_mod', help=helps['run_mod'])
     options = parser.parse_args(args=args)
 
     if options.contract is not None:
@@ -105,13 +105,13 @@ def parse_args(args=None):
 def run_parametric(options):
     output.prefix = 'run:'
 
-    script_mod = import_file(options.script)
-    if hasattr(script_mod, 'get_run_info'):
+    run_mod = import_file(options.run_mod)
+    if hasattr(run_mod, 'get_run_info'):
         (run_cmd, opt_args, output_dir_key,
-         _is_finished) = script_mod.get_run_info()
+         _is_finished) = run_mod.get_run_info()
 
     else:
-        output('no get_run_info() in {} script'.format(options.script))
+        output('no get_run_info() in {}, exiting'.format(options.run_mod))
         return
 
     if isinstance(_is_finished, str):
@@ -159,7 +159,7 @@ def run_parametric(options):
         podir = all_pars[output_dir_key] % it
         all_pars[output_dir_key] = podir
 
-        all_pars['script_dir'] = op.normpath(op.dirname(options.script))
+        all_pars['script_dir'] = op.normpath(op.dirname(options.run_mod))
 
         if (recompute > 1) or (recompute and not is_finished(podir)):
             cmd = make_cmd(run_cmd, opt_args, all_pars)
