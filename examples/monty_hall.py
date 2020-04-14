@@ -44,12 +44,12 @@ def get_run_info():
 
     # Arguments allowed to be missing in soops-run calls.
     opt_args = {
-        '--switch' : ' --switch',
-        '--host' : ' --host={--host}',
-        '--seed' : ' --seed={--seed}',
-        '--plot-opts' : ' --plot-opts={--plot-opts}',
-        '--no-show' : ' --no-show',
-        '--silent' : ' --silent',
+        '--switch' : '--switch',
+        '--host' : '--host={--host}',
+        '--seed' : '--seed={--seed}',
+        '--plot-opts' : '--plot-opts={--plot-opts}',
+        '--no-show' : '--no-show',
+        '--silent' : '--silent',
     }
 
     output_dir_key = 'output_dir'
