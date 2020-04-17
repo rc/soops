@@ -26,7 +26,7 @@ setup(
         'Programming Language :: Python :: 3',
     ],
     keywords='run parametric studies, scoop output',
-    url='http://github.com/rc/soops',
+    url='https://github.com/rc/soops',
     author='Robert Cimrman',
     author_email='cimrman3@ntc.zcu.cz',
     license='BSD',
