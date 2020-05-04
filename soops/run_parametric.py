@@ -121,7 +121,10 @@ def run_parametric(options):
         is_finished = _is_finished
 
     dconf = parse_as_dict(options.conf, free_word=True)
-    key_order = sorted(dconf.keys())
+
+    aux = set(dconf.keys())
+    aux.update(opt_args.keys())
+    key_order = sorted(aux)
 
     filename = op.join(options.output_dir, 'options.txt')
     ensure_path(filename)
@@ -136,7 +139,8 @@ def run_parametric(options):
     cluster = LocalCluster(n_workers=options.n_workers, threads_per_worker=1)
     client = Client(cluster)
 
-    par_seqs = [make_key_list(key, dconf[key]) for key in key_order]
+    par_seqs = [make_key_list(key, dconf.get(key, '@undefined'))
+                for key in key_order]
 
     count = 0
     for _all_pars in itertools.product(*par_seqs):
