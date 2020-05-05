@@ -35,15 +35,17 @@ import soops.scoop_outputs as sc
 from soops import output
 
 def get_run_info():
+    # script_dir is added by soops-run, it is the normalized path to
+    # this script.
     run_cmd = """
-    {python} {script_dir}/monty_hall.py
-    --num={--num} --repeat={--repeat}
-    {output_dir}
+    {python} {script_dir}/monty_hall.py {output_dir}
     """
     run_cmd = ' '.join(run_cmd.split())
 
     # Arguments allowed to be missing in soops-run calls.
     opt_args = {
+        '--num' : '--num={--num}',
+        '--repeat' : '--repeat={--repeat}',
         '--switch' : '--switch',
         '--host' : '--host={--host}',
         '--seed' : '--seed={--seed}',
