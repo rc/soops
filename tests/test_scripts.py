@@ -5,6 +5,8 @@ cmd_run = r"""-r 1 -n 3 -c=--switch+--seed -o {output_dir} python='python3',outp
 
 cmd_scoop = r"""{soops_dir}/examples/monty_hall.py {output_dir}/study/ -s rdir -o {output_dir}/study --omit-plugins=show_figures"""
 
+cmd_info = r"""{soops_dir}/examples/monty_hall.py -e {output_dir}/study/0_0_1_0_0_1_0_1_0_0/"""
+
 @pytest.fixture(scope='session')
 def soops_dir():
     return os.path.normpath(os.path.join(os.path.dirname(__file__), '../'))
@@ -38,3 +40,13 @@ def test_scoop_outputs(soops_dir, output_dir):
     so.scoop_outputs(options)
 
     assert so.op.exists(so.op.join(output_dir, 'study/win_rates.png'))
+
+def test_print_info(soops_dir, output_dir):
+    import soops.print_info as pi
+
+    print(soops_dir)
+    print(output_dir)
+    options = pi.parse_args(args=cmd_info
+                            .format(soops_dir=soops_dir,
+                                    output_dir=output_dir).split())
+    pi.print_info(options)
