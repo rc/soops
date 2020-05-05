@@ -44,6 +44,7 @@ setup(
         'console_scripts': [
             'soops-run=soops.run_parametric:main',
             'soops-scoop=soops.scoop_outputs:main',
+            'soops-info=soops.print_info:main',
         ],
     },
     include_package_data=True,
