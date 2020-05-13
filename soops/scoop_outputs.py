@@ -127,7 +127,7 @@ def get_uniques(df, columns):
     return uniques
 
 def get_parametric_uniques(df, omit=None):
-    if omit is None: omit = {}
+    if omit is None: omit = set()
 
     par_cols = get_parametric_columns(df)
     uniques = get_uniques(df, [col for col in par_cols if col not in omit])
