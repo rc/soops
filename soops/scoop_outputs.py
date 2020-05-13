@@ -143,7 +143,8 @@ def run_plugins(info, df, output_dir):
     data = Struct(par_cols=par_cols, output_dir=output_dir)
     for fun in info:
         output('running {}()...'.format(fun.__name__))
-        data = fun(df, data=data)
+        _data = fun(df, data=data)
+        data = _data if _data is not None else data
         output('...done')
 
     return data
