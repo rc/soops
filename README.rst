@@ -412,7 +412,7 @@ plugin allows plotting the all results combined:
 
 .. code:: python
 
-   def plot_win_rates(df, data=None):
+   def plot_win_rates(df, data=None, colormap_name='viridis'):
        import soops.plot_selected as sps
 
        df = df.copy()
@@ -427,7 +427,7 @@ plugin allows plotting the all results combined:
 
        styles = {key : {} for key in selected.keys()}
        styles['seed'] = {'alpha' : [0.9, 0.1]}
-       styles['num'] = {'color' : 'viridis'}
+       styles['num'] = {'color' : colormap_name}
        styles['repeat'] = {'lw' : np.linspace(3, 2,
                                               len(selected.get('repeat', [1])))}
        styles['host'] = {'ls' : ['-', ':']}
@@ -435,8 +435,10 @@ plugin allows plotting the all results combined:
 
        styles = sps.setup_plot_styles(selected, styles)
 
-       fig, ax = plt.subplots()
+       fig, ax = plt.subplots(figsize=(8, 8))
        sps.plot_selected(ax, df, 'win_rate', selected, {}, styles)
+       ax.set_xlabel('simulation number')
+       ax.set_ylabel('win rate')
        fig.tight_layout()
        fig.savefig(os.path.join(data.output_dir, 'win_rates.png'))
 
