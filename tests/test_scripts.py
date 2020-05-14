@@ -3,7 +3,7 @@ import pytest
 
 cmd_run = r"""-r 1 -n 3 -c=--switch+--seed -o {output_dir} python='python3',output_dir='{output_dir}/study/%s',--num=[100,1000],--repeat=5,--switch=['@undefined','@defined'],--seed=['@undefined',12345],--silent=@defined,--no-show=@defined {soops_dir}/examples/monty_hall.py"""
 
-cmd_scoop = r"""{soops_dir}/examples/monty_hall.py {output_dir}/study/ -s rdir -o {output_dir}/study --omit-plugins=show_figures"""
+cmd_scoop = r"""{soops_dir}/examples/monty_hall.py {output_dir}/study/ -s rdir -o {output_dir}/study --omit-plugins=show_figures --plugin-args=plot_win_rates={{colormap_name='plasma'}}"""
 
 cmd_info = r"""{soops_dir}/examples/monty_hall.py -e {output_dir}/study/0_0_1_0_0_1_0_1_0_0/"""
 
