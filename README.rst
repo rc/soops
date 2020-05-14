@@ -315,7 +315,8 @@ Then we are ready to run ``soops-scoop``::
   $ soops-scoop -h
   usage: soops-scoop [-h] [-s column[,columns,...]] [-r filename] [--no-plugins]
                      [--use-plugins name[,name,...] | --omit-plugins
-                     name[,name,...]] [-p module] [--shell] [-o path]
+                     name[,name,...]] [-p module] [--plugin-args dict-like]
+                     [--shell] [-o path]
                      scoop_mod directories [directories ...]
 
   Scoop output files.
@@ -339,6 +340,9 @@ Then we are ready to run ``soops-scoop``::
     -p module, --plugin-mod module
                           if given, the module that has get_plugin_info()
                           instead of scoop_mod
+    --plugin-args dict-like
+                          optional arguments passed to plugins given as
+                          plugin_name={key1=val1, key2=val2, ...}, ...
     --shell               run ipython shell after all computations
     -o path, --output-dir path
                           output directory [default: .]
@@ -408,7 +412,7 @@ plugin allows plotting the all results combined:
 
 .. code:: python
 
-   def plot_win_rates(df, data=None):
+   def plot_win_rates(df, data=None, colormap_name='viridis'):
        import soops.plot_selected as sps
 
        df = df.copy()
@@ -423,7 +427,7 @@ plugin allows plotting the all results combined:
 
        styles = {key : {} for key in selected.keys()}
        styles['seed'] = {'alpha' : [0.9, 0.1]}
-       styles['num'] = {'color' : 'viridis'}
+       styles['num'] = {'color' : colormap_name}
        styles['repeat'] = {'lw' : np.linspace(3, 2,
                                               len(selected.get('repeat', [1])))}
        styles['host'] = {'ls' : ['-', ':']}
@@ -431,8 +435,10 @@ plugin allows plotting the all results combined:
 
        styles = sps.setup_plot_styles(selected, styles)
 
-       fig, ax = plt.subplots()
+       fig, ax = plt.subplots(figsize=(8, 8))
        sps.plot_selected(ax, df, 'win_rate', selected, {}, styles)
+       ax.set_xlabel('simulation number')
+       ax.set_ylabel('win rate')
        fig.tight_layout()
        fig.savefig(os.path.join(data.output_dir, 'win_rates.png'))
 
@@ -446,6 +452,11 @@ reuses the ``results.h5`` file and plots the combined results:
 
 .. image:: doc/readme/win_rates.png
    :alt: win_rates.png
+
+It is possible to pass arguments to plugins using ``--plugin-args`` option, as
+follows::
+
+  soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r output/study/results.h5 --plugin-args=plot_win_rates={colormap_name='plasma'}
 
 Notes
 '''''
