@@ -20,6 +20,8 @@ Examples
 
   soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r output/study/results.h5
 
+  soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r output/study/results.h5 --plugin-args=plot_win_rates={colormap_name='plasma'}
+
   soops-scoop examples/monty_hall.py output/study/ -o output/study -r output/study/results.h5 --no-plugins --shell
 """
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
@@ -97,7 +99,7 @@ def get_plugin_info():
 
     return info
 
-def plot_win_rates(df, data=None):
+def plot_win_rates(df, data=None, colormap_name='viridis'):
     import soops.plot_selected as sps
 
     df = df.copy()
@@ -112,7 +114,7 @@ def plot_win_rates(df, data=None):
 
     styles = {key : {} for key in selected.keys()}
     styles['seed'] = {'alpha' : [0.9, 0.1]}
-    styles['num'] = {'color' : 'viridis'}
+    styles['num'] = {'color' : colormap_name}
     styles['repeat'] = {'lw' : np.linspace(3, 2,
                                            len(selected.get('repeat', [1])))}
     styles['host'] = {'ls' : ['-', ':']}
