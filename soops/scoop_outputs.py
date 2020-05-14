@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 from soops.base import output, import_file, Struct
-from soops.parsing import parse_as_list
+from soops.parsing import parse_as_dict, parse_as_list
 from soops.ioutils import load_options, locate_files, ensure_path
 
 def load_array(filename, key='array', load_kwargs={}, rdata=None):
@@ -134,16 +134,30 @@ def get_parametric_uniques(df, omit=None):
 
     return uniques
 
-def run_plugins(info, df, output_dir):
+def run_plugins(info, df, output_dir, plugin_args=None):
     if not len(info):
         return
+
+    if plugin_args is None: plugin_args = {}
+
+    def wrap_fun(fun):
+        args = plugin_args.get(fun.__name__)
+        if args is None:
+            _fun = fun
+
+        else:
+            def _fun(df, data=None):
+                return fun(df, data=data, **args)
+
+        return _fun
 
     output('run plugins:')
     par_cols = get_parametric_columns(df)
     data = Struct(par_cols=par_cols, output_dir=output_dir)
     for fun in info:
         output('running {}()...'.format(fun.__name__))
-        _data = fun(df, data=data)
+        wfun = wrap_fun(fun)
+        _data = wfun(df, data=data)
         data = _data if _data is not None else data
         output('...done')
 
@@ -157,6 +171,9 @@ helps = {
     'omit_plugins' : 'omit the named plugins (no effect with --no-plugins)',
     'plugin_mod' :
     'if given, the module that has get_plugin_info() instead of scoop_mod',
+    'plugin_args' :
+    """optional arguments passed to plugins given as plugin_name={key1=val1,
+       key2=val2, ...}, ...""",
     'shell' : 'run ipython shell after all computations',
     'output_dir' : 'output directory [default: %(default)s]',
     'scoop_mod' : 'the importable script/module with get_scoop_info()',
@@ -185,6 +202,9 @@ def parse_args(args=None):
     parser.add_argument('-p', '--plugin-mod', metavar='module',
                         action='store', dest='plugin_mod',
                         default=None, help=helps['plugin_mod'])
+    parser.add_argument('--plugin-args', metavar='dict-like',
+                        action='store', dest='plugin_args',
+                        default=None, help=helps['plugin_args'])
     parser.add_argument('--shell',
                         action='store_true', dest='shell',
                         default=False, help=helps['shell'])
@@ -202,6 +222,9 @@ def parse_args(args=None):
 
     if options.omit_plugins is not None:
         options.omit_plugins = parse_as_list(options.omit_plugins)
+
+    if options.plugin_args is not None:
+        options.plugin_args = parse_as_dict(options.plugin_args)
 
     return options
 
@@ -270,7 +293,8 @@ def scoop_outputs(options):
                 plugin_info = [fun for fun in plugin_info
                                if fun.__name__ not in options.omit_plugins]
 
-            run_plugins(plugin_info, df, options.output_dir)
+            run_plugins(plugin_info, df, options.output_dir,
+                        plugin_args=options.plugin_args)
 
         else:
             output('no get_plugin_info() in {}'.format(plugin_mod.__name__))
