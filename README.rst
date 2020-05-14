@@ -315,7 +315,8 @@ Then we are ready to run ``soops-scoop``::
   $ soops-scoop -h
   usage: soops-scoop [-h] [-s column[,columns,...]] [-r filename] [--no-plugins]
                      [--use-plugins name[,name,...] | --omit-plugins
-                     name[,name,...]] [-p module] [--shell] [-o path]
+                     name[,name,...]] [-p module] [--plugin-args dict-like]
+                     [--shell] [-o path]
                      scoop_mod directories [directories ...]
 
   Scoop output files.
@@ -339,6 +340,9 @@ Then we are ready to run ``soops-scoop``::
     -p module, --plugin-mod module
                           if given, the module that has get_plugin_info()
                           instead of scoop_mod
+    --plugin-args dict-like
+                          optional arguments passed to plugins given as
+                          plugin_name={key1=val1, key2=val2, ...}, ...
     --shell               run ipython shell after all computations
     -o path, --output-dir path
                           output directory [default: .]
@@ -446,6 +450,11 @@ reuses the ``results.h5`` file and plots the combined results:
 
 .. image:: doc/readme/win_rates.png
    :alt: win_rates.png
+
+It is possible to pass arguments to plugins using ``--plugin-args`` option, as
+follows::
+
+  soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r output/study/results.h5 --plugin-args=plot_win_rates={colormap_name='plasma'}
 
 Notes
 '''''
