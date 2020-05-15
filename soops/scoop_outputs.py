@@ -140,6 +140,11 @@ def run_plugins(info, df, output_dir, plugin_args=None):
 
     if plugin_args is None: plugin_args = {}
 
+    used = {fun.__name__ for fun in info if fun.__name__ in plugin_args}
+    unused = set(plugin_args.keys()).difference(used)
+    if len(unused):
+        output('WARNING: unused plugin arguments:', unused)
+
     def wrap_fun(fun):
         args = plugin_args.get(fun.__name__)
         if args is None:
