@@ -19,6 +19,10 @@ def load_array(filename, key='array', load_kwargs={}, rdata=None):
     arr = np.loadtxt(filename, **load_kwargs)
     return {key : arr}
 
+def load_csv(filename, orient='list', rdata=None):
+    df = pd.read_csv(filename)
+    return df.to_dict(orient=orient)
+
 def split_options(options, split_keys):
     new_options = options.copy()
     for okey, nkeys in split_keys.items():
