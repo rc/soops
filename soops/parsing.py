@@ -127,7 +127,7 @@ def create_list_bnf(free_word=False):
 
 def parse_as_list(string, free_word=False):
     """
-    Parse `string` and return a dictionary.
+    Parse `string` and return a list.
     """
     if string is None:
         return []
