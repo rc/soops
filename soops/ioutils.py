@@ -82,3 +82,26 @@ def load_options(filename):
         options[key] = val
 
     return options
+
+def skip_lines(fd, num):
+    for ii in range(num):
+        line = next(fd)
+    return line
+
+def skip_lines_to(fd, key):
+    while 1:
+        try:
+            line = next(fd)
+
+        except StopIteration:
+            return ''
+
+        if key in dec(line):
+            return line
+
+def dec(val):
+    if isinstance(val, bytes):
+        return val.decode('utf-8')
+
+    else:
+        return val
