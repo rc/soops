@@ -59,6 +59,8 @@ helps = {
     'list of option keys that should be contracted to vary in lockstep',
     'n_workers' :
     'the number of dask workers [default: %(default)s]',
+    'create_output_dirs' :
+    'create parametric output directories if necessary',
     'silent' :
     'do not print messages to screen',
     'shell' :
@@ -83,6 +85,9 @@ def parse_args(args=None):
     parser.add_argument('-n', '--n-workers', type=int, metavar='int',
                         action='store', dest='n_workers',
                         default=2, help=helps['n_workers'])
+    parser.add_argument('--create-output-dirs',
+                        action='store_true', dest='create_output_dirs',
+                        default=False, help=helps['create_output_dirs'])
     parser.add_argument('--silent',
                         action='store_false', dest='verbose',
                         default=True, help=helps['silent'])
@@ -162,6 +167,8 @@ def run_parametric(options):
 
         podir = all_pars[output_dir_key] % it
         all_pars[output_dir_key] = podir
+        if options.create_output_dirs:
+            ensure_path(podir + op.sep)
 
         all_pars['script_dir'] = op.normpath(op.dirname(options.run_mod))
 
