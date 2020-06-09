@@ -54,7 +54,7 @@ def print_info(options):
     except ValueError:
         pass
 
-    keys = sorted(keys)
+    keys = sorted(set(keys))
 
     if options.explain is None:
         for ik, key in enumerate(keys):
