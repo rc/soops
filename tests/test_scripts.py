@@ -5,7 +5,7 @@ cmd_run = r"""-r 1 -n 3 -c=--switch+--seed -o {output_dir} python='python3',outp
 
 cmd_scoop = r"""{soops_dir}/examples/monty_hall.py {output_dir}/study/ -s rdir -o {output_dir}/study --omit-plugins=show_figures --plugin-args=plot_win_rates={{colormap_name='plasma'}}"""
 
-cmd_info = r"""{soops_dir}/examples/monty_hall.py -e {output_dir}/study/0_0_1_0_0_1_0_1_0_0/"""
+cmd_info = r"""{soops_dir}/examples/monty_hall.py -e {output_dir}/study/0_0_1_0_0_1_0_1_0/"""
 
 @pytest.fixture(scope='session')
 def soops_dir():
