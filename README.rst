@@ -187,8 +187,8 @@ Putting `get_run_info()` into our script allows running a parametric study using
 `soops-run`::
 
   $ soops-run -h
-  usage: soops-run [-h] [-r {0,1,2}] [-c key1+key2+..., ...] [-n int] [--silent]
-                   [--shell] [-o path]
+  usage: soops-run [-h] [-r {0,1,2}] [-c key1+key2+..., ...] [-n int]
+                   [--create-output-dirs] [--silent] [--shell] [-o path]
                    conf run_mod
 
   Run parametric studies.
@@ -208,6 +208,7 @@ Putting `get_run_info()` into our script allows running a parametric study using
                           in lockstep
     -n int, --n-workers int
                           the number of dask workers [default: 2]
+    --create-output-dirs  create parametric output directories if necessary
     --silent              do not print messages to screen
     --shell               run ipython shell after all computations
     -o path, --output-dir path
@@ -222,18 +223,18 @@ This command runs our script using three dask workers (``-n 3`` option) and
 produces a directory for each parameter set::
 
   $ ls output/study/
-  0_0_0_0_0_0_0_0_0/  0_0_1_1_0_0_0_0_0/  1_0_0_0_0_0_0_0_0/  1_0_1_1_0_0_0_0_0/
-  0_0_0_0_1_0_1_0_0/  0_0_1_1_1_0_1_0_0/  1_0_0_0_1_0_1_0_0/  1_0_1_1_1_0_1_0_0/
-  0_0_0_0_2_0_2_0_0/  0_0_1_1_2_0_2_0_0/  1_0_0_0_2_0_2_0_0/  1_0_1_1_2_0_2_0_0/
-  0_0_0_0_3_0_3_0_0/  0_0_1_1_3_0_3_0_0/  1_0_0_0_3_0_3_0_0/  1_0_1_1_3_0_3_0_0/
-  0_0_0_1_0_0_0_0_0/  0_0_2_0_0_0_0_0_0/  1_0_0_1_0_0_0_0_0/  1_0_2_0_0_0_0_0_0/
-  0_0_0_1_1_0_1_0_0/  0_0_2_0_1_0_1_0_0/  1_0_0_1_1_0_1_0_0/  1_0_2_0_1_0_1_0_0/
-  0_0_0_1_2_0_2_0_0/  0_0_2_0_2_0_2_0_0/  1_0_0_1_2_0_2_0_0/  1_0_2_0_2_0_2_0_0/
-  0_0_0_1_3_0_3_0_0/  0_0_2_0_3_0_3_0_0/  1_0_0_1_3_0_3_0_0/  1_0_2_0_3_0_3_0_0/
-  0_0_1_0_0_0_0_0_0/  0_0_2_1_0_0_0_0_0/  1_0_1_0_0_0_0_0_0/  1_0_2_1_0_0_0_0_0/
-  0_0_1_0_1_0_1_0_0/  0_0_2_1_1_0_1_0_0/  1_0_1_0_1_0_1_0_0/  1_0_2_1_1_0_1_0_0/
-  0_0_1_0_2_0_2_0_0/  0_0_2_1_2_0_2_0_0/  1_0_1_0_2_0_2_0_0/  1_0_2_1_2_0_2_0_0/
-  0_0_1_0_3_0_3_0_0/  0_0_2_1_3_0_3_0_0/  1_0_1_0_3_0_3_0_0/  1_0_2_1_3_0_3_0_0/
+  0_0_0_0_0_0_0_0_0/  0_0_1_0_1_0_0_0_0/  1_0_0_0_0_0_0_0_0/  1_0_1_0_1_0_0_0_0/
+  0_0_0_0_0_1_0_1_0/  0_0_1_0_1_1_0_1_0/  1_0_0_0_0_1_0_1_0/  1_0_1_0_1_1_0_1_0/
+  0_0_0_0_0_2_0_2_0/  0_0_1_0_1_2_0_2_0/  1_0_0_0_0_2_0_2_0/  1_0_1_0_1_2_0_2_0/
+  0_0_0_0_0_3_0_3_0/  0_0_1_0_1_3_0_3_0/  1_0_0_0_0_3_0_3_0/  1_0_1_0_1_3_0_3_0/
+  0_0_0_0_1_0_0_0_0/  0_0_2_0_0_0_0_0_0/  1_0_0_0_1_0_0_0_0/  1_0_2_0_0_0_0_0_0/
+  0_0_0_0_1_1_0_1_0/  0_0_2_0_0_1_0_1_0/  1_0_0_0_1_1_0_1_0/  1_0_2_0_0_1_0_1_0/
+  0_0_0_0_1_2_0_2_0/  0_0_2_0_0_2_0_2_0/  1_0_0_0_1_2_0_2_0/  1_0_2_0_0_2_0_2_0/
+  0_0_0_0_1_3_0_3_0/  0_0_2_0_0_3_0_3_0/  1_0_0_0_1_3_0_3_0/  1_0_2_0_0_3_0_3_0/
+  0_0_1_0_0_0_0_0_0/  0_0_2_0_1_0_0_0_0/  1_0_1_0_0_0_0_0_0/  1_0_2_0_1_0_0_0_0/
+  0_0_1_0_0_1_0_1_0/  0_0_2_0_1_1_0_1_0/  1_0_1_0_0_1_0_1_0/  1_0_2_0_1_1_0_1_0/
+  0_0_1_0_0_2_0_2_0/  0_0_2_0_1_2_0_2_0/  1_0_1_0_0_2_0_2_0/  1_0_2_0_1_2_0_2_0/
+  0_0_1_0_0_3_0_3_0/  0_0_2_0_1_3_0_3_0/  1_0_1_0_0_3_0_3_0/  1_0_2_0_1_3_0_3_0/
 
 In each directory, there are three files::
 
@@ -263,6 +264,38 @@ command line arguments in ``options.txt`` for possible re-runs and inspection::
   silent: True
   switch: False
 
+Explain Output Directory Names
+''''''''''''''''''''''''''''''
+
+Use ``soops-info`` to explain the output directory names::
+
+  $ soops-info -h
+  usage: soops-info [-h] [-e output directory] [--shell] run_mod
+
+  Get parametric study configuration information.
+
+  positional arguments:
+    run_mod               the importable script/module with get_run_info()
+
+  optional arguments:
+    -h, --help            show this help message and exit
+    -e output directory, --explain output directory
+                          explain the given directory name
+    --shell               run ipython shell after all computations
+
+::
+
+  $ soops-info -e output/study/1_0_2_0_1_3_0_3_0/ examples/monty_hall.py
+  info:   0:   1 <- --host
+  info:   1:   0 <- --no-show
+  info:   2:   2 <- --num
+  info:   3:   0 <- --plot-opts
+  info:   4:   1 <- --repeat
+  info:   5:   3 <- --seed
+  info:   6:   0 <- --silent
+  info:   7:   3 <- --switch
+  info:   8:   0 <- python
+
 Scoop Outputs of the Parametric Study
 '''''''''''''''''''''''''''''''''''''
 
@@ -278,14 +311,19 @@ study, a new function needs to be defined:
            ('options.txt', partial(
                sc.load_split_options,
                split_keys=None,
-           )),
+           ), True),
            ('output_log.txt', scrape_output),
        ]
 
        return info
 
-The function for loading the ``'options.txt'`` files is already in `soops`, the
-function to get useful information from ``'output_log.txt'`` needs to be
+The function for loading the ``'options.txt'`` files is already in `soops`. The
+third item in the tuple, if present and True, denotes that the output contains
+input parameters that were used for the parameterization. This allows getting
+the parameterization in post-processing plugins, see below
+the ``plot_win_rates()`` function.
+
+The function to get useful information from ``'output_log.txt'`` needs to be
 provided:
 
 .. code:: python
@@ -418,8 +456,9 @@ plugin allows plotting the all results combined:
        df = df.copy()
        df['seed'] = df['seed'].where(df['seed'].notnull(), -1)
 
-       omit = {'win_rate', 'output_dir', 'elapsed'}
-       uniques = sc.get_parametric_uniques(df, omit=omit)
+       uniques = sc.get_uniques(df, [key for key in data.multi_par_keys
+                                     if key not in ['output_dir']])
+       output('parameterization:')
        for key, val in uniques.items():
            output(key, val)
 
