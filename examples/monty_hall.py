@@ -18,6 +18,8 @@ Examples
 
   soops-run -r 1 -n 3 -c='--switch + --seed' -o output "python='python3', output_dir='output/study/%s', --num=[100,1000,10000], --repeat=[10,20], --switch=['@undefined', '@defined', '@undefined', '@defined'], --seed=['@undefined', '@undefined', 12345, 12345], --host=['random', 'first'], --silent=@defined, --no-show=@defined" examples/monty_hall.py
 
+   soops-info -e output/study/1_0_2_0_1_3_0_3_0/ examples/monty_hall.py
+
   soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r output/study/results.h5
 
   soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r output/study/results.h5 --plugin-args=plot_win_rates={colormap_name='plasma'}
@@ -66,7 +68,7 @@ def get_scoop_info():
         ('options.txt', partial(
             sc.load_split_options,
             split_keys=None,
-        )),
+        ), True),
         ('output_log.txt', scrape_output),
     ]
 
@@ -105,8 +107,9 @@ def plot_win_rates(df, data=None, colormap_name='viridis'):
     df = df.copy()
     df['seed'] = df['seed'].where(df['seed'].notnull(), -1)
 
-    omit = {'win_rate', 'output_dir', 'elapsed'}
-    uniques = sc.get_parametric_uniques(df, omit=omit)
+    uniques = sc.get_uniques(df, [key for key in data.multi_par_keys
+                                  if key not in ['output_dir']])
+    output('parameterization:')
     for key, val in uniques.items():
         output(key, val)
 

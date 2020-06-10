@@ -9,6 +9,12 @@ import re
 
 from soops.base import output, import_file
 
+def collect_keys(run_cmd, opt_args, omit=()):
+    keys = set(re.findall(r'\{(.+?)\}', run_cmd))
+    keys.update(opt_args.keys())
+    keys.difference_update(omit)
+    return sorted(keys)
+
 helps = {
     'explain' :
     'explain the given directory name',
@@ -44,17 +50,8 @@ def print_info(options):
         output('no get_run_info() in {}, exiting'.format(options.run_mod))
         return
 
-    keys = re.findall(r'\{(.+?)\}', run_cmd)
-
-    keys.extend(opt_args.keys())
-
-    try:
-        keys.remove('script_dir')
-
-    except ValueError:
-        pass
-
-    keys = sorted(set(keys))
+    keys = collect_keys(run_cmd, opt_args,
+                        omit=(output_dir_key, 'script_dir'))
 
     if options.explain is None:
         for ik, key in enumerate(keys):

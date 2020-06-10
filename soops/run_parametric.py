@@ -13,6 +13,7 @@ from dask.distributed import as_completed, Client, LocalCluster
 from soops.parsing import parse_as_dict
 from soops.base import output, import_file
 from soops.ioutils import ensure_path, save_options
+from soops.print_info import collect_keys
 
 def make_key_list(key, obj):
     return ([(ii, key, item) for ii, item in enumerate(obj)]
@@ -127,9 +128,15 @@ def run_parametric(options):
 
     dconf = parse_as_dict(options.conf, free_word=True)
 
-    aux = set(dconf.keys())
-    aux.update(opt_args.keys())
-    key_order = sorted(aux)
+    keys = set(dconf.keys())
+    keys.update(opt_args.keys())
+
+    key_order = collect_keys(run_cmd, opt_args,
+                             omit=(output_dir_key, 'script_dir'))
+    if not (keys.issuperset(key_order)
+            and (keys.difference(key_order) == set(['output_dir']))):
+        raise ValueError('parametric keys mismatch! (conf: {},  collected: {})'
+                         .format(keys, key_order))
 
     filename = op.join(options.output_dir, 'options.txt')
     ensure_path(filename)
@@ -146,6 +153,7 @@ def run_parametric(options):
 
     par_seqs = [make_key_list(key, dconf.get(key, '@undefined'))
                 for key in key_order]
+    output_dir_template = dconf[output_dir_key]
 
     count = 0
     for _all_pars in itertools.product(*par_seqs):
@@ -165,7 +173,7 @@ def run_parametric(options):
         all_pars = dict(zip(keys, vals))
         it = '_'.join('%d' % ii for ii in _it)
 
-        podir = all_pars[output_dir_key] % it
+        podir = output_dir_template % it
         all_pars[output_dir_key] = podir
         if options.create_output_dirs:
             ensure_path(podir + op.sep)
