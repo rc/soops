@@ -45,10 +45,11 @@ def load_split_options(filename, split_keys=None, rdata=None):
 
 def apply_scoops(info, directories):
     if not len(info):
-        return pd.DataFrame({}), pd.DataFrame({})
+        return pd.DataFrame({}), pd.DataFrame({}), None
 
     data = []
     metadata = []
+    par_keys = set()
     for idir, directory in enumerate(directories):
         output('directory {}: {}'.format(idir, directory))
 
@@ -62,7 +63,18 @@ def apply_scoops(info, directories):
             rdata = {'rdir' : rdir.replace(home, '~')}
             rmetadata = {}
             output('results files:')
-            for filename, fun in info:
+            for item in info:
+                if len(item) == 2:
+                    filename, fun = item
+                    has_parameters = False
+
+                elif len(item) == 3:
+                    filename, fun, has_parameters = item
+
+                else:
+                    raise ValueError('scoop info item has to have length'
+                                     ' 2 or 3! ({})'.format(item))
+
                 output(filename)
                 path = op.join(rdir, filename)
                 try:
@@ -91,6 +103,8 @@ def apply_scoops(info, directories):
                     })
                     rdata.update(out)
                     metadata.append(pd.Series(rmetadata))
+                    if has_parameters:
+                        par_keys.update(out.keys())
 
             rdata['time'] = datetime.utcnow()
 
@@ -98,22 +112,8 @@ def apply_scoops(info, directories):
 
     df = pd.DataFrame(data)
     mdf = pd.DataFrame(metadata)
-    return df, mdf
 
-def get_parametric_columns(df):
-    par_cols = []
-    omit = ('rdir', 'time')
-    for ic, col in enumerate(df.columns):
-        try:
-            num = df[col].nunique()
-
-        except TypeError:
-            num = len(np.unique([str(ii) for ii in df[col]]))
-
-        if num > 1 and col not in omit:
-            par_cols.append(col)
-
-    return par_cols
+    return df, mdf, par_keys
 
 def get_uniques(df, columns):
     uniques = {}
@@ -122,23 +122,14 @@ def get_uniques(df, columns):
             vals = sorted(df[col].unique())
 
         except TypeError:
-            _, ir = np.unique([str(ii) for ii in df[col]],
-                                  return_index=True)
+            _, ir = np.unique([str(ii) for ii in df[col]], return_index=True)
             vals = df.loc[ir, col].tolist() # np.unique() sorts.
 
         uniques[col] = vals
 
     return uniques
 
-def get_parametric_uniques(df, omit=None):
-    if omit is None: omit = set()
-
-    par_cols = get_parametric_columns(df)
-    uniques = get_uniques(df, [col for col in par_cols if col not in omit])
-
-    return uniques
-
-def run_plugins(info, df, output_dir, plugin_args=None):
+def run_plugins(info, df, output_dir, par_keys, plugin_args=None):
     if not len(info):
         return
 
@@ -161,8 +152,15 @@ def run_plugins(info, df, output_dir, plugin_args=None):
         return _fun
 
     output('run plugins:')
-    par_cols = get_parametric_columns(df)
-    data = Struct(par_cols=par_cols, output_dir=output_dir)
+    par_uniques = get_uniques(df, par_keys)
+    multi_par_keys = [key for key, vals in par_uniques.items()
+                      if len(vals) > 1]
+    multi_par_uniques = {key : par_uniques[key] for key in multi_par_keys}
+    data = Struct(par_keys=par_keys,
+                  multi_par_keys=multi_par_keys,
+                  par_uniques=par_uniques,
+                  multi_par_uniques=multi_par_uniques,
+                  output_dir=output_dir)
     for fun in info:
         output('running {}()...'.format(fun.__name__))
         wfun = wrap_fun(fun)
@@ -253,11 +251,12 @@ def scoop_outputs(options):
                    .format(options.scoop_mod))
             return
 
-        df, mdf = apply_scoops(scoop_info, options.directories)
+        df, mdf, par_keys = apply_scoops(scoop_info, options.directories)
 
     else:
         df = pd.read_hdf(options.results, 'df')
         mdf = pd.read_hdf(options.results, 'mdf')
+        par_keys = set(pd.read_hdf(options.results, 'par_keys').to_list())
 
     output('data keys:')
     output(df.keys())
@@ -281,6 +280,7 @@ def scoop_outputs(options):
     store = pd.HDFStore(filename, mode='w')
     store.put('df', df)
     store.put('mdf', mdf)
+    store.put('par_keys', pd.Series(list(par_keys)))
     store.close()
 
     if options.call_plugins:
@@ -302,7 +302,7 @@ def scoop_outputs(options):
                 plugin_info = [fun for fun in plugin_info
                                if fun.__name__ not in options.omit_plugins]
 
-            run_plugins(plugin_info, df, options.output_dir,
+            run_plugins(plugin_info, df, options.output_dir, par_keys,
                         plugin_args=options.plugin_args)
 
         else:
