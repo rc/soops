@@ -91,7 +91,7 @@ def get_legend_items(selected, styles, used=None, format_labels=None):
         if not len(key_styles): continue
 
         for iv, val in enumerate(svals):
-            if iv not in used[key]: continue
+            if (used is not None) and (iv not in used[key]): continue
 
             kw = {}
             for skey, style_vals in key_styles.items():
