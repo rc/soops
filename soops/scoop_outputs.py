@@ -302,8 +302,10 @@ def scoop_outputs(options):
                 plugin_info = [fun for fun in plugin_info
                                if fun.__name__ not in options.omit_plugins]
 
-            run_plugins(plugin_info, df, options.output_dir, par_keys,
-                        plugin_args=options.plugin_args)
+            data = run_plugins(plugin_info, df, options.output_dir, par_keys,
+                               plugin_args=options.plugin_args)
+            output('plugin data keys:')
+            output(data.keys())
 
         else:
             output('no get_plugin_info() in {}'.format(plugin_mod.__name__))
