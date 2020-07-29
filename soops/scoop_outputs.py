@@ -43,6 +43,15 @@ def load_split_options(filename, split_keys=None, rdata=None):
         options = split_options(options, split_keys=split_keys)
     return options
 
+def filter_dict(data, key_prefix, strip_prefix=True):
+    """
+    Filter a subset of `data` with keys starting with `key_prefix`.
+    """
+    out = Struct((key.replace(key_prefix, '', 1) if strip_prefix else key, val)
+                 for key, val in data.items()
+                 if key.startswith(key_prefix))
+    return out
+
 def apply_scoops(info, directories):
     if not len(info):
         return pd.DataFrame({}), pd.DataFrame({}), None
