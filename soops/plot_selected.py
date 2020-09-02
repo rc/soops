@@ -125,13 +125,14 @@ def update_used(used, indices):
 
     return used
 
-def add_legend(ax, selected, styles, used, format_labels=None):
+def add_legend(ax, selected, styles, used, format_labels=None,
+               loc='best', fontsize=None, frame_alpha=0.5):
     lines, labels = get_legend_items(selected, styles, used=used,
                                      format_labels=format_labels)
 
-    leg = ax.legend(lines, labels, loc='best')
+    leg = ax.legend(lines, labels, loc=loc, fontsize=fontsize)
     if leg is not None:
-        leg.get_frame().set_alpha(0.5)
+        leg.get_frame().set_alpha(frame_alpha)
 
 def plot_selected(ax, df, column, selected, compares, styles,
                   format_labels=None, **plot_kwargs):
