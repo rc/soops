@@ -134,7 +134,7 @@ def run_parametric(options):
     key_order = collect_keys(run_cmd, opt_args,
                              omit=(output_dir_key, 'script_dir'))
     if not (keys.issuperset(key_order)
-            and (keys.difference(key_order) == set(['output_dir']))):
+            and (keys.difference(key_order) == set([output_dir_key]))):
         raise ValueError('parametric keys mismatch! (conf: {},  collected: {})'
                          .format(keys, key_order))
 
