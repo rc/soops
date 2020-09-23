@@ -35,14 +35,21 @@ def setup_plot_styles(selected, raw_styles):
 
         for skey, svals in style.items():
             if skey == 'color' and isinstance(svals, str):
-                cmap = getattr(plt.cm, svals)
+                cmap_name, *modifiers = svals.split(':')
+                modifier = modifiers[0] if len(modifiers) else ''
+
+                cmap = getattr(plt.cm, cmap_name)
 
                 ncolors = max(len(selected[key]), 2)
                 if hasattr(cmap, 'colors'):
                     acc = np.asarray(cmap.colors)
-                    icc = np.linspace(0, len(acc) - 1,
+                    if modifier == 'qualitative':
+                        cc = acc[:ncolors]
+
+                    else:
+                        icc = np.linspace(0, len(acc) - 1,
                                       ncolors).astype(int)
-                    cc = acc[icc]
+                        cc = acc[icc]
 
                 else:
                     cc = cmap(np.linspace(0.0, 1.0, ncolors))
