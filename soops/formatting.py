@@ -1,3 +1,5 @@
+from math import isfinite
+
 def format_float(val, prec, replace_dot=True):
     fmt = '{{:.{}e}}'.format(prec)
     aux = fmt.format(val)
@@ -11,9 +13,12 @@ def format_float_latex(val, prec):
     if val == 0.0:
         return '0'
 
-    else:
+    elif isfinite(val):
         fmt = '{{:.{}e}}'.format(prec)
         sval = fmt.format(val)
         iexp = list(map(float, sval.split('e')))
         iexp[1] = int(iexp[1])
         return r'${} \cdot 10^{{{}}}$'.format(*iexp)
+
+    else:
+        return str(val)
