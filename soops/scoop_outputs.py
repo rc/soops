@@ -183,6 +183,7 @@ def run_plugins(info, df, output_dir, par_keys, plugin_args=None):
 helps = {
     'sort' : 'column keys for sorting of DataFrame rows',
     'results' : 'reuse previously scooped results file',
+    'filter' : 'use only DataFrame rows with given files successfully scooped',
     'no_plugins' : 'do not call post-processing plugins',
     'use_plugins' : 'use only the named plugins (no effect with --no-plugins)',
     'omit_plugins' : 'omit the named plugins (no effect with --no-plugins)',
@@ -206,6 +207,9 @@ def parse_args(args=None):
     parser.add_argument('-r', '--results', metavar='filename',
                         action='store', dest='results',
                         default=None, help=helps['results'])
+    parser.add_argument('--filter', metavar='filename[,filename,...]',
+                        action='store', dest='filter',
+                        default=None, help=helps['filter'])
     parser.add_argument('--no-plugins',
                         action='store_false', dest='call_plugins',
                         default=True, help=helps['no_plugins'])
@@ -233,6 +237,9 @@ def parse_args(args=None):
     options = parser.parse_args(args=args)
 
     options.sort = parse_as_list(options.sort)
+
+    if options.filter is not None:
+        options.filter = set(parse_as_list(options.filter, free_word=True))
 
     if options.use_plugins is not None:
         options.use_plugins = parse_as_list(options.use_plugins)
@@ -262,6 +269,17 @@ def scoop_outputs(options):
             return
 
         df, mdf, par_keys = apply_scoops(scoop_info, options.directories)
+
+        if options.filter is not None:
+            idf = [ii for ii, rfiles in df['rfiles'].items()
+                   if options.filter.intersection(rfiles)]
+            df = df.iloc[idf]
+            df.index = np.arange(len(df))
+
+            imdf = [ii for ii, data_row in mdf['data_row'].items()
+                    if data_row in idf]
+            mdf = mdf.iloc[imdf]
+            mdf.index = np.arange(len(mdf))
 
     else:
         df = pd.read_hdf(options.results, 'df')
