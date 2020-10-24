@@ -69,7 +69,7 @@ def apply_scoops(info, directories):
             rdir = op.dirname(filename)
             output('results directory {}: {}'.format(ir, rdir))
 
-            rdata = {'rdir' : rdir.replace(home, '~')}
+            rdata = {'rdir' : rdir.replace(home, '~'), 'rfiles' : []}
             rmetadata = {}
             output('results files:')
             for item in info:
@@ -98,6 +98,7 @@ def apply_scoops(info, directories):
                     continue
 
                 else:
+                    rdata['rfiles'].append(filename)
                     try:
                         mtime = datetime.fromtimestamp(op.getmtime(path))
 
