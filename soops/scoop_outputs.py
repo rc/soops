@@ -201,7 +201,7 @@ helps = {
 def parse_args(args=None):
     parser = ArgumentParser(description=__doc__,
                             formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('-s', '--sort', metavar='column[,columns,...]',
+    parser.add_argument('-s', '--sort', metavar='column[,column,...]',
                         action='store', dest='sort',
                         default=None, help=helps['sort'])
     parser.add_argument('-r', '--results', metavar='filename',
