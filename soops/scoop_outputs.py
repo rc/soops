@@ -320,11 +320,22 @@ def scoop_outputs(options):
 
         if hasattr(plugin_mod, 'get_plugin_info'):
             plugin_info = plugin_mod.get_plugin_info()
-            output('available plugins:', [fun.__name__ for fun in plugin_info])
+            fun_names = [fun.__name__ for fun in plugin_info]
+            output('available plugins:', fun_names)
 
             if options.use_plugins is not None:
-                plugin_info = [fun for fun in plugin_info
-                               if fun.__name__ in options.use_plugins]
+                aux = []
+                for fun_name in options.use_plugins:
+                    try:
+                        ii = fun_names.index(fun_name)
+
+                    except ValueError:
+                        raise ValueError('unknown plugin! ({})'
+                                         .format(fun_name))
+
+                    aux.append(plugin_info[ii])
+
+                plugin_info = aux
 
             elif options.omit_plugins is not None:
                 plugin_info = [fun for fun in plugin_info
