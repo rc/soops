@@ -139,7 +139,8 @@ def get_uniques(df, columns):
 
     return uniques
 
-def run_plugins(info, df, output_dir, par_keys, plugin_args=None):
+def run_plugins(info, df, output_dir, par_keys, store_filename,
+                plugin_args=None):
     if not len(info):
         return
 
@@ -170,7 +171,8 @@ def run_plugins(info, df, output_dir, par_keys, plugin_args=None):
                   multi_par_keys=multi_par_keys,
                   par_uniques=par_uniques,
                   multi_par_uniques=multi_par_uniques,
-                  output_dir=output_dir)
+                  output_dir=output_dir,
+                  store_filename=store_filename)
     for fun in info:
         output('running {}()...'.format(fun.__name__))
         wfun = wrap_fun(fun)
@@ -342,7 +344,7 @@ def scoop_outputs(options):
                                if fun.__name__ not in options.omit_plugins]
 
             data = run_plugins(plugin_info, df, options.output_dir, par_keys,
-                               plugin_args=options.plugin_args)
+                               filename, plugin_args=options.plugin_args)
             output('plugin data keys:')
             output(data.keys())
 
