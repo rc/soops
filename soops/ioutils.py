@@ -105,3 +105,24 @@ def dec(val):
 
     else:
         return val
+
+def put_to_store(filename, key, val):
+    from pandas import HDFStore
+
+    with HDFStore(filename, mode='r+') as store:
+        store.put(key, val)
+
+def get_from_store(filename, key, default=None):
+    from pandas import HDFStore
+
+    try:
+        store = HDFStore(filename, mode='r')
+
+    except OSError:
+        return default
+
+    else:
+        out = store.get(key) if key in store else default
+        store.close()
+
+    return out
