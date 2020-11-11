@@ -185,6 +185,8 @@ def run_plugins(info, df, output_dir, par_keys, store_filename,
 helps = {
     'sort' : 'column keys for sorting of DataFrame rows',
     'results' : 'reuse previously scooped results file',
+    'write' : 'write results files even when results were loaded using '
+    '--results option',
     'filter' : 'use only DataFrame rows with given files successfully scooped',
     'no_plugins' : 'do not call post-processing plugins',
     'use_plugins' : 'use only the named plugins (no effect with --no-plugins)',
@@ -209,6 +211,9 @@ def parse_args(args=None):
     parser.add_argument('-r', '--results', metavar='filename',
                         action='store', dest='results',
                         default=None, help=helps['results'])
+    parser.add_argument('--write',
+                        action='store_true', dest='write',
+                        default=False, help=helps['write'])
     parser.add_argument('--filter', metavar='filename[,filename,...]',
                         action='store', dest='filter',
                         default=None, help=helps['filter'])
@@ -309,7 +314,7 @@ def scoop_outputs(options):
 
     results_filename = op.join(options.output_dir, 'results.h5')
     ensure_path(results_filename)
-    if new_results:
+    if new_results or options.write:
         with pd.HDFStore(results_filename, mode='w') as store:
             store.put('df', df)
             store.put('mdf', mdf)
