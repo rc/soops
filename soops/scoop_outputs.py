@@ -261,6 +261,7 @@ def scoop_outputs(options):
 
     if (options.results is None
         or not (op.exists(options.results) and op.isfile(options.results))):
+        new_results = True
 
         if hasattr(scoop_mod, 'get_scoop_info'):
             scoop_info = scoop_mod.get_scoop_info()
@@ -284,9 +285,15 @@ def scoop_outputs(options):
             mdf.index = np.arange(len(mdf))
 
     else:
-        df = pd.read_hdf(options.results, 'df')
-        mdf = pd.read_hdf(options.results, 'mdf')
-        par_keys = set(pd.read_hdf(options.results, 'par_keys').to_list())
+        new_results = False
+        with pd.HDFStore(options.results, mode='r') as store:
+            df = store.get('df')
+            mdf = store.get('mdf')
+            par_keys = set(store.get('par_keys').to_list())
+            std_keys = ('/df', '/mdf', '/par_keys')
+            user_keys = set(store.keys()).difference(std_keys)
+            output('user data:')
+            output(user_keys)
 
     output('data keys:')
     output(df.keys())
@@ -300,18 +307,18 @@ def scoop_outputs(options):
     warnings.simplefilter(action='ignore',
                           category=pd.errors.PerformanceWarning)
 
-    filename = op.join(options.output_dir, 'results.csv')
-    ensure_path(filename)
-    df.to_csv(filename)
-    filename = op.join(options.output_dir, 'results-meta.csv')
-    mdf.to_csv(filename)
+    results_filename = op.join(options.output_dir, 'results.h5')
+    ensure_path(results_filename)
+    if new_results:
+        with pd.HDFStore(results_filename, mode='w') as store:
+            store.put('df', df)
+            store.put('mdf', mdf)
+            store.put('par_keys', pd.Series(list(par_keys)))
 
-    filename = op.join(options.output_dir, 'results.h5')
-    store = pd.HDFStore(filename, mode='w')
-    store.put('df', df)
-    store.put('mdf', mdf)
-    store.put('par_keys', pd.Series(list(par_keys)))
-    store.close()
+        filename = op.join(options.output_dir, 'results.csv')
+        df.to_csv(filename)
+        filename = op.join(options.output_dir, 'results-meta.csv')
+        mdf.to_csv(filename)
 
     if options.call_plugins:
         if options.plugin_mod is not None:
@@ -344,7 +351,8 @@ def scoop_outputs(options):
                                if fun.__name__ not in options.omit_plugins]
 
             data = run_plugins(plugin_info, df, options.output_dir, par_keys,
-                               filename, plugin_args=options.plugin_args)
+                               results_filename,
+                               plugin_args=options.plugin_args)
             output('plugin data keys:')
             output(data.keys())
 
