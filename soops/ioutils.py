@@ -24,6 +24,38 @@ def fix_path(path):
     """
     return os.path.abspath(os.path.expanduser(path))
 
+def edit_filename(filename, prefix='', suffix='', new_ext=None):
+    """
+    Edit a file name by adding a prefix, by inserting a suffix in front of the
+    extension or by replacing the extension.
+
+    Parameters
+    ----------
+    filename : str
+        The file name.
+    prefix : str
+        The prefix to be added.
+    suffix : str
+        The suffix to be inserted.
+    new_ext : str, optional
+        If not None, it replaces the original file name extension.
+
+    Returns
+    -------
+    new_filename : str
+        The new file name.
+    """
+    path, filename = os.path.split(filename)
+    base, ext = os.path.splitext(filename)
+
+    if new_ext is None:
+        new_filename = prefix + base + suffix + ext
+
+    else:
+        new_filename = prefix + base + suffix + new_ext
+
+    return os.path.join(path, new_filename)
+
 def locate_files(pattern, root_dir=os.curdir, **kwargs):
     """
     Locate all files matching fiven filename pattern in and below
