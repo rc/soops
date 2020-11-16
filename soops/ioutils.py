@@ -1,6 +1,10 @@
 import sys
 import os
 import fnmatch
+import tempfile
+import shutil
+import subprocess
+from collections.abc import Iterable
 
 from soops.base import ordered_iteritems
 from soops.parsing import parse_as_dict
@@ -138,6 +142,15 @@ def dec(val):
     else:
         return val
 
+def is_in_store(filename, keys):
+    from pandas import HDFStore
+
+    if not isinstance(keys, Iterable):
+        keys = [keys]
+
+    with HDFStore(filename, mode='r') as store:
+        return all(key in store for key in keys)
+
 def put_to_store(filename, key, val):
     from pandas import HDFStore
 
@@ -158,3 +171,23 @@ def get_from_store(filename, key, default=None):
         store.close()
 
     return out
+
+def delete_from_store(filename, key):
+    from pandas import HDFStore
+
+    with HDFStore(filename, mode='r+') as store:
+        store.remove(key)
+
+def repack_store(filename):
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, 'repack.h5')
+
+        cmd = ('ptrepack --chunkshape=auto --propindexes {} {}'
+               .format(filename, path)
+               .split())
+
+        if subprocess.call(cmd) == 0:
+            shutil.move(path, filename)
+
+        else:
+            raise IOError('repack failed!')
