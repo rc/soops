@@ -272,3 +272,85 @@ def shell(frame=0):
 
     except ImportError:
         python_shell(frame=frame+1)
+
+def debug(frame=None, frames_back=1):
+    """
+    Start debugger on line where it is called, roughly equivalent to::
+
+        import pdb; pdb.set_trace()
+
+    First, this function tries to start an `IPython`-enabled
+    debugger using the `IPython` API.
+
+    When this fails, the plain old `pdb` is used instead.
+
+    With IPython, one can say in what frame the debugger can stop.
+    """
+    try:
+        import IPython
+
+    except ImportError:
+        import pdb
+        pdb.set_trace()
+
+    else:
+        old_excepthook = sys.excepthook
+
+        if IPython.__version__ >= '0.11':
+            from IPython.core.debugger import Pdb
+
+            try:
+                ip = get_ipython()
+
+            except NameError:
+                from IPython.frontend.terminal.embed \
+                     import InteractiveShellEmbed
+                ip = InteractiveShellEmbed()
+
+            colors = ip.colors
+
+        else:
+            from IPython.Debugger import Pdb
+            from IPython.Shell import IPShell
+            from IPython import ipapi
+
+            ip = ipapi.get()
+            if ip is None:
+                IPShell(argv=[''])
+                ip = ipapi.get()
+
+            colors = ip.options.colors
+
+        sys.excepthook = old_excepthook
+
+        if frame is None:
+            frame = sys._getframe(frames_back)
+
+        Pdb(colors).set_trace(frame)
+
+def debug_on_error():
+    """
+    Start debugger at the line where an exception was raised.
+    """
+    try:
+        from IPython.core import ultratb
+
+        except_hook = ultratb.FormattedTB(mode='Verbose',
+                                          color_scheme='Linux', call_pdb=1)
+
+    except ImportError:
+        def except_hook(etype, value, tb):
+            if hasattr(sys, 'ps1') or not sys.stderr.isatty():
+                # We are in interactive mode or we don't have a tty-like
+                # device, so we call the default hook.
+                sys.__excepthook__(etype, value, tb)
+
+            else:
+                import traceback, pdb
+                # We are NOT in interactive mode, print the exception...
+                traceback.print_exception(etype, value, tb)
+                print()
+                # ...then start the debugger in post-mortem mode.
+                pdb.post_mortem(tb)
+
+    sys.excepthook = except_hook
