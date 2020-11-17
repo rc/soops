@@ -1,6 +1,10 @@
 import sys
 import os
 import fnmatch
+import tempfile
+import shutil
+import subprocess
+from collections.abc import Iterable
 
 from soops.base import ordered_iteritems
 from soops.parsing import parse_as_dict
@@ -23,6 +27,38 @@ def fix_path(path):
     Expand user directory and make the path absolute.
     """
     return os.path.abspath(os.path.expanduser(path))
+
+def edit_filename(filename, prefix='', suffix='', new_ext=None):
+    """
+    Edit a file name by adding a prefix, by inserting a suffix in front of the
+    extension or by replacing the extension.
+
+    Parameters
+    ----------
+    filename : str
+        The file name.
+    prefix : str
+        The prefix to be added.
+    suffix : str
+        The suffix to be inserted.
+    new_ext : str, optional
+        If not None, it replaces the original file name extension.
+
+    Returns
+    -------
+    new_filename : str
+        The new file name.
+    """
+    path, filename = os.path.split(filename)
+    base, ext = os.path.splitext(filename)
+
+    if new_ext is None:
+        new_filename = prefix + base + suffix + ext
+
+    else:
+        new_filename = prefix + base + suffix + new_ext
+
+    return os.path.join(path, new_filename)
 
 def locate_files(pattern, root_dir=os.curdir, **kwargs):
     """
@@ -106,6 +142,15 @@ def dec(val):
     else:
         return val
 
+def is_in_store(filename, keys):
+    from pandas import HDFStore
+
+    if not isinstance(keys, Iterable):
+        keys = [keys]
+
+    with HDFStore(filename, mode='r') as store:
+        return all(key in store for key in keys)
+
 def put_to_store(filename, key, val):
     from pandas import HDFStore
 
@@ -126,3 +171,23 @@ def get_from_store(filename, key, default=None):
         store.close()
 
     return out
+
+def delete_from_store(filename, key):
+    from pandas import HDFStore
+
+    with HDFStore(filename, mode='r+') as store:
+        store.remove(key)
+
+def repack_store(filename):
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, 'repack.h5')
+
+        cmd = ('ptrepack --chunkshape=auto --propindexes {} {}'
+               .format(filename, path)
+               .split())
+
+        if subprocess.call(cmd) == 0:
+            shutil.move(path, filename)
+
+        else:
+            raise IOError('repack failed!')
