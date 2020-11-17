@@ -1,3 +1,5 @@
+import os
+import subprocess
 from math import isfinite
 
 def format_float(val, prec, replace_dot=True):
@@ -22,3 +24,12 @@ def format_float_latex(val, prec):
 
     else:
         return str(val)
+
+def build_pdf(filename):
+    fdir = os.path.dirname(os.path.abspath(filename))
+    fname = os.path.basename(filename)
+    build_cmd = 'pdflatex -interaction=nonstopmode %s' % fname
+    with open(os.devnull, 'w') as devnull:
+        for ii in range(3):
+            subprocess.call(build_cmd.split(), cwd=fdir,
+                            stdout=devnull, stderr=devnull)
