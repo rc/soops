@@ -1,6 +1,6 @@
-import os
-import subprocess
 from math import isfinite
+
+from soops.base import output, run_command
 
 def format_float(val, prec, replace_dot=True):
     fmt = '{{:.{}e}}'.format(prec)
@@ -26,10 +26,7 @@ def format_float_latex(val, prec):
         return str(val)
 
 def build_pdf(filename):
-    fdir = os.path.dirname(os.path.abspath(filename))
-    fname = os.path.basename(filename)
-    build_cmd = 'pdflatex -interaction=nonstopmode %s' % fname
-    with open(os.devnull, 'w') as devnull:
-        for ii in range(3):
-            subprocess.call(build_cmd.split(), cwd=fdir,
-                            stdout=devnull, stderr=devnull)
+    status = run_command('pdflatex -interaction=nonstopmode', filename,
+                         repeat=3, silent=True)
+    if status:
+        output('build_pdf() failed with status {}!'.format(status))
