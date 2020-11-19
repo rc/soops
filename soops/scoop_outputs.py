@@ -52,7 +52,7 @@ def filter_dict(data, key_prefix, strip_prefix=True):
                  if key.startswith(key_prefix))
     return out
 
-def apply_scoops(info, directories):
+def apply_scoops(info, directories, debug_mode=False):
     if not len(info):
         return pd.DataFrame({}), pd.DataFrame({}), None
 
@@ -95,6 +95,7 @@ def apply_scoops(info, directories):
                 except Exception as exc:
                     output('- failed with:')
                     output(exc)
+                    if debug_mode: raise
                     continue
 
                 else:
@@ -197,6 +198,7 @@ helps = {
     """optional arguments passed to plugins given as plugin_name={key1=val1,
        key2=val2, ...}, ...""",
     'shell' : 'run ipython shell after all computations',
+    'debug' : 'automatically start debugger when an exception is raised',
     'output_dir' : 'output directory [default: %(default)s]',
     'scoop_mod' : 'the importable script/module with get_scoop_info()',
     'directories' : 'results directories',
@@ -236,12 +238,18 @@ def parse_args(args=None):
     parser.add_argument('--shell',
                         action='store_true', dest='shell',
                         default=False, help=helps['shell'])
+    parser.add_argument('--debug',
+                        action='store_true', dest='debug',
+                        default=False, help=helps['debug'])
     parser.add_argument('-o', '--output-dir', metavar='path',
                         action='store', dest='output_dir',
                         default='.', help=helps['output_dir'])
     parser.add_argument('scoop_mod', help=helps['scoop_mod'])
     parser.add_argument('directories', nargs='+', help=helps['directories'])
     options = parser.parse_args(args=args)
+
+    if options.debug:
+        from soops import debug_on_error; debug_on_error()
 
     options.sort = parse_as_list(options.sort)
 
@@ -276,7 +284,8 @@ def scoop_outputs(options):
                    .format(options.scoop_mod))
             return
 
-        df, mdf, par_keys = apply_scoops(scoop_info, options.directories)
+        df, mdf, par_keys = apply_scoops(scoop_info, options.directories,
+                                         options.debug)
 
         if options.filter is not None:
             idf = [ii for ii, rfiles in df['rfiles'].items()
