@@ -1,5 +1,7 @@
 from math import isfinite
 
+from soops.base import output, run_command
+
 def format_float(val, prec, replace_dot=True):
     fmt = '{{:.{}e}}'.format(prec)
     aux = fmt.format(val)
@@ -22,3 +24,9 @@ def format_float_latex(val, prec):
 
     else:
         return str(val)
+
+def build_pdf(filename):
+    status = run_command('pdflatex -interaction=nonstopmode', filename,
+                         repeat=3, silent=True)
+    if status:
+        output('build_pdf() failed with status {}!'.format(status))

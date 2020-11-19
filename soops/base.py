@@ -1,5 +1,6 @@
 import os
 import sys
+import subprocess
 
 class AttrDict(dict):
     """
@@ -354,3 +355,27 @@ def debug_on_error():
                 pdb.post_mortem(tb)
 
     sys.excepthook = except_hook
+
+def run_command(command, filename, repeat=1, silent=False):
+    """
+    Run `command` with `filename` positional argument in the directory of the
+    `filename`.
+    """
+    fdir = os.path.dirname(os.path.abspath(filename))
+    fname = os.path.basename(filename)
+
+    cmd = command + ' ' + fname
+
+    status = 0
+    for ii in range(repeat):
+        if silent:
+            with open(os.devnull, 'w') as devnull:
+                st = subprocess.call(cmd.split(), cwd=fdir,
+                                     stdout=devnull, stderr=devnull)
+
+        else:
+            st = subprocess.call(cmd.split(), cwd=fdir)
+
+        status = status or st
+
+    return status
