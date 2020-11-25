@@ -2,6 +2,7 @@
 Elapsed time measurement utilities.
 """
 import time
+from datetime import datetime
 
 from soops.base import Struct
 
@@ -32,3 +33,6 @@ class Timer(Struct):
         self.dt = self.t1 - self.t0
         self.total += self.dt
         return self.dt
+
+def get_timestamp(fmt='%Y-%m-%d-%H-%M-%S'):
+    return datetime.now().strftime(fmt)
