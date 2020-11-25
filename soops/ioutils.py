@@ -28,7 +28,7 @@ def fix_path(path):
     """
     return os.path.abspath(os.path.expanduser(path))
 
-def edit_filename(filename, prefix='', suffix='', new_ext=None):
+def edit_filename(filename, prefix='', suffix='', new_dir=None, new_ext=None):
     """
     Edit a file name by adding a prefix, by inserting a suffix in front of the
     extension or by replacing the extension.
@@ -41,6 +41,8 @@ def edit_filename(filename, prefix='', suffix='', new_ext=None):
         The prefix to be added.
     suffix : str
         The suffix to be inserted.
+    new_dir : str, optional
+        If not None, it replaces the path to the original file.
     new_ext : str, optional
         If not None, it replaces the original file name extension.
 
@@ -58,7 +60,13 @@ def edit_filename(filename, prefix='', suffix='', new_ext=None):
     else:
         new_filename = prefix + base + suffix + new_ext
 
-    return os.path.join(path, new_filename)
+    if new_dir is None:
+        new_filename = os.path.join(path, new_filename)
+
+    else:
+        new_filename = os.path.join(new_dir, new_filename)
+
+    return new_filename
 
 def locate_files(pattern, root_dir=os.curdir, **kwargs):
     """
