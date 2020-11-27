@@ -25,6 +25,21 @@ def format_float_latex(val, prec):
     else:
         return str(val)
 
+def escape_latex(txt):
+    out = (txt.replace('\\', '\\textbackslash ')
+           .replace('_', '\\_')
+           .replace('%', '\\%')
+           .replace('$', '\\$')
+           .replace('#', '\\#')
+           .replace('{', '\\{')
+           .replace('}', '\\}')
+           .replace('~', '\\textasciitilde ')
+           .replace('^', '\\textasciicircum ')
+           .replace('&', '\\&')
+           if (txt and txt != '{}')
+           else '{}')
+    return out
+
 def build_pdf(filename):
     status = run_command('pdflatex -interaction=nonstopmode', filename,
                          repeat=3, silent=True)
