@@ -75,6 +75,10 @@ def locate_files(pattern, root_dir=os.curdir, **kwargs):
 
     The `**kwargs` arguments are passed to ``os.walk()``.
     """
+    dirname, pattern = os.path.split(pattern)
+    if dirname:
+        root_dir = os.path.join(root_dir, dirname)
+
     for dirpath, dirnames, filenames in os.walk(os.path.abspath(root_dir),
                                                 **kwargs):
         for filename in fnmatch.filter(filenames, pattern):
