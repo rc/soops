@@ -109,6 +109,10 @@ def apply_scoops(info, directories, debug_mode=False):
                     continue
 
                 else:
+                    if out is None:
+                        output('- nothing returned!')
+                        out = {}
+
                     rdata['rfiles'].append(filename)
                     try:
                         mtime = datetime.fromtimestamp(op.getmtime(path))
