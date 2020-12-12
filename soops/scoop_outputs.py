@@ -86,6 +86,16 @@ def apply_scoops(info, directories, debug_mode=False):
 
                 output(filename)
                 path = op.join(rdir, filename)
+                if not op.exists(path):
+                    paths = list(locate_files(path))
+                    if len(paths) == 1:
+                        path = paths[0]
+
+                    else:
+                        path = paths
+
+                    output('expanded:', path.replace(rdir, '<rdir>'))
+
                 try:
                     out = fun(path, rdata=rdata)
 
@@ -99,6 +109,10 @@ def apply_scoops(info, directories, debug_mode=False):
                     continue
 
                 else:
+                    if out is None:
+                        output('- nothing returned!')
+                        out = {}
+
                     rdata['rfiles'].append(filename)
                     try:
                         mtime = datetime.fromtimestamp(op.getmtime(path))
