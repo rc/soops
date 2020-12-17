@@ -88,16 +88,18 @@ def apply_scoops(info, directories, debug_mode=False):
                 path = op.join(rdir, filename)
                 if not op.exists(path):
                     paths = list(locate_files(path))
-                    if len(paths) == 1:
-                        path = paths[0]
+                    output('expanded:', [path.replace(rdir, '<rdir>')
+                                         for path in paths])
 
-                    else:
-                        path = paths
-
-                    output('expanded:', path.replace(rdir, '<rdir>'))
+                else:
+                    paths = None
 
                 try:
-                    out = fun(path, rdata=rdata)
+                    if paths is None:
+                        out = fun(path, rdata=rdata)
+
+                    else:
+                        out = fun(paths, rdata=rdata)
 
                 except KeyboardInterrupt:
                     raise
