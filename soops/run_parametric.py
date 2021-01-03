@@ -4,6 +4,7 @@ Run parametric studies.
 """
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import sys
+import os
 import os.path as op
 import itertools
 import subprocess
@@ -62,6 +63,8 @@ helps = {
     'the number of dask workers [default: %(default)s]',
     'create_output_dirs' :
     'create parametric output directories if necessary',
+    'run_function' :
+    'function for running the parameterized command [default: %(default)s]',
     'silent' :
     'do not print messages to screen',
     'shell' :
@@ -89,6 +92,9 @@ def parse_args(args=None):
     parser.add_argument('--create-output-dirs',
                         action='store_true', dest='create_output_dirs',
                         default=False, help=helps['create_output_dirs'])
+    parser.add_argument('--run-function', action='store', dest='run_function',
+                        choices=['subprocess.call', 'os.system'],
+                        default='subprocess.call', help=helps['run_function'])
     parser.add_argument('--silent',
                         action='store_false', dest='verbose',
                         default=True, help=helps['silent'])
@@ -184,7 +190,13 @@ def run_parametric(options):
             cmd = make_cmd(run_cmd, opt_args, all_pars)
             output(cmd)
 
-            call = client.submit(subprocess.call, cmd, shell=True, pure=False)
+            if options.run_function == 'subprocess.call':
+                call = client.submit(subprocess.call, cmd,
+                                     shell=True, pure=False)
+
+            else:
+                call = client.submit(os.system, cmd)
+
             call.iset = iset
             call.it = it
             call.all_pars = all_pars
