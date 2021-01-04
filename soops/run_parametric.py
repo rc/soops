@@ -53,6 +53,8 @@ def check_contracted(all_pars, options, key_order):
     return ok
 
 helps = {
+    'dry_run':
+    'perform a trial run with no commands executed',
     'recompute' :
      """recomputation strategy: 0: do not recompute,
         1: recompute only if is_finished() returns False,
@@ -80,6 +82,9 @@ helps = {
 def parse_args(args=None):
     parser = ArgumentParser(description=__doc__,
                             formatter_class=RawDescriptionHelpFormatter)
+    parser.add_argument('--dry-run',
+                        action='store_true', dest='dry_run',
+                        default=False, help=helps['dry_run'])
     parser.add_argument('-r', '--recompute', action='store', type=int,
                         dest='recompute', choices=[0, 1, 2],
                         default=1, help=helps['recompute'])
@@ -186,7 +191,9 @@ def run_parametric(options):
 
         all_pars['script_dir'] = op.normpath(op.dirname(options.run_mod))
 
-        if (recompute > 1) or (recompute and not is_finished(podir)):
+        if  ((not options.dry_run) and
+             ((recompute > 1) or
+              (recompute and not is_finished(podir)))):
             cmd = make_cmd(run_cmd, opt_args, all_pars)
             output(cmd)
 
