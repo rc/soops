@@ -53,12 +53,16 @@ def check_contracted(all_pars, options, key_order):
     return ok
 
 helps = {
+    'dry_run':
+    'perform a trial run with no commands executed',
     'recompute' :
      """recomputation strategy: 0: do not recompute,
         1: recompute only if is_finished() returns False,
         2: always recompute [default:  %(default)s]""",
     'contract' :
     'list of option keys that should be contracted to vary in lockstep',
+    'compute_pars' :
+    'if given, compute additional parameters using the specified class',
     'n_workers' :
     'the number of dask workers [default: %(default)s]',
     'create_output_dirs' :
@@ -80,12 +84,19 @@ helps = {
 def parse_args(args=None):
     parser = ArgumentParser(description=__doc__,
                             formatter_class=RawDescriptionHelpFormatter)
+    parser.add_argument('--dry-run',
+                        action='store_true', dest='dry_run',
+                        default=False, help=helps['dry_run'])
     parser.add_argument('-r', '--recompute', action='store', type=int,
                         dest='recompute', choices=[0, 1, 2],
                         default=1, help=helps['recompute'])
     parser.add_argument('-c', '--contract', metavar='key1+key2+..., ...',
                         action='store', dest='contract',
                         default=None, help=helps['contract'])
+    parser.add_argument('--compute-pars',
+                        metavar='dict-like: class=class_name,par0=val0,...',
+                        action='store', dest='compute_pars',
+                        default=None, help=helps['compute_pars'])
     parser.add_argument('-n', '--n-workers', type=int, metavar='int',
                         action='store', dest='n_workers',
                         default=2, help=helps['n_workers'])
@@ -137,6 +148,15 @@ def run_parametric(options):
     keys = set(dconf.keys())
     keys.update(opt_args.keys())
 
+    if options.compute_pars is not None:
+        dcompute_pars = parse_as_dict(options.compute_pars, free_word=True)
+        options.compute_pars = dcompute_pars.copy()
+
+        class_name = dcompute_pars.pop('class')
+        ComputePars = getattr(run_mod, class_name)
+
+        keys.update(dcompute_pars.keys())
+
     key_order = collect_keys(run_cmd, opt_args,
                              omit=(output_dir_key, 'script_dir'))
     if not (keys.issuperset(key_order)
@@ -159,6 +179,13 @@ def run_parametric(options):
 
     par_seqs = [make_key_list(key, dconf.get(key, '@undefined'))
                 for key in key_order]
+
+    if options.compute_pars is not None:
+        compute_pars = ComputePars(dcompute_pars, par_seqs, key_order, options)
+
+    else:
+        compute_pars = lambda x: {}
+
     output_dir_template = dconf[output_dir_key]
 
     count = 0
@@ -177,6 +204,7 @@ def run_parametric(options):
 
         _it, keys, vals = zip(*_all_pars)
         all_pars = dict(zip(keys, vals))
+        all_pars.update(compute_pars(all_pars))
         it = '_'.join('%d' % ii for ii in _it)
 
         podir = output_dir_template % it
@@ -186,7 +214,9 @@ def run_parametric(options):
 
         all_pars['script_dir'] = op.normpath(op.dirname(options.run_mod))
 
-        if (recompute > 1) or (recompute and not is_finished(podir)):
+        if  ((not options.dry_run) and
+             ((recompute > 1) or
+              (recompute and not is_finished(podir)))):
             cmd = make_cmd(run_cmd, opt_args, all_pars)
             output(cmd)
 
