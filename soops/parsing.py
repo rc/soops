@@ -6,7 +6,7 @@ from pyparsing import (Word, Group, Suppress, Combine, Optional,
 (lparen, rparen, lbrack, rbrack,
  lbrace, rbrace, colon, equal_sign) = map(Suppress, '()[]{}:=')
 
-word_free_wb = Word(alphas + '@_-/.+**' + alphanums)
+word_free_wb = Word(alphas + '@_-/.+*:' + alphanums)
 word_free = Forward()
 word_free = word_free_wb + Optional(lbrace + word_free + rbrace + word_free)
 word_free.setParseAction(lambda toks: ''.join(toks[0]))
