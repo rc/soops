@@ -213,6 +213,7 @@ helps = {
     'write' : 'write results files even when results were loaded using '
     '--results option',
     'filter' : 'use only DataFrame rows with given files successfully scooped',
+    'no_csv' : 'do not save results as CSV (use only HDF5)',
     'no_plugins' : 'do not call post-processing plugins',
     'use_plugins' : 'use only the named plugins (no effect with --no-plugins)',
     'omit_plugins' : 'omit the named plugins (no effect with --no-plugins)',
@@ -243,6 +244,9 @@ def parse_args(args=None):
     parser.add_argument('--filter', metavar='filename[,filename,...]',
                         action='store', dest='filter',
                         default=None, help=helps['filter'])
+    parser.add_argument('--no-csv',
+                        action='store_false', dest='save_csv',
+                        default=True, help=helps['no_csv'])
     parser.add_argument('--no-plugins',
                         action='store_false', dest='call_plugins',
                         default=True, help=helps['no_plugins'])
@@ -353,8 +357,10 @@ def scoop_outputs(options):
             store.put('mdf', mdf)
             store.put('par_keys', pd.Series(list(par_keys)))
 
-        filename = op.join(options.output_dir, 'results.csv')
-        df.to_csv(filename)
+        if options.save_csv:
+            filename = op.join(options.output_dir, 'results.csv')
+            df.to_csv(filename)
+
         filename = op.join(options.output_dir, 'results-meta.csv')
         mdf.to_csv(filename)
 
