@@ -8,6 +8,7 @@ import os
 import os.path as op
 import itertools
 import subprocess
+from datetime import datetime
 
 from dask.distributed import as_completed, Client, LocalCluster
 
@@ -15,6 +16,7 @@ from soops.parsing import parse_as_dict
 from soops.base import output, import_file
 from soops.ioutils import ensure_path, save_options
 from soops.print_info import collect_keys
+from soops.timing import get_timestamp
 
 def make_key_list(key, obj):
     return ([(ii, key, item) for ii, item in enumerate(obj)]
@@ -218,6 +220,8 @@ def run_parametric(options):
              ((recompute > 1) or
               (recompute and not is_finished(podir)))):
             cmd = make_cmd(run_cmd, opt_args, all_pars)
+            dtime = datetime.now()
+            output('submitting at', get_timestamp(dtime=dtime))
             output(cmd)
 
             if options.run_function == 'subprocess.call':
@@ -230,6 +234,7 @@ def run_parametric(options):
             call.iset = iset
             call.it = it
             call.all_pars = all_pars
+            call.dtime = dtime
             calls.append(call)
 
         else:
@@ -237,13 +242,17 @@ def run_parametric(options):
             call.iset = iset
             call.it = it
             call.all_pars = all_pars
+            call.dtime = datetime.now()
             calls.append(call)
 
         iset += 1
 
     for call in as_completed(calls):
+        dtime = datetime.now()
         output(call.iset)
         output(call.it)
+        output('completed at', get_timestamp(dtime=dtime) , 'in',
+               dtime - call.dtime)
         output(call.all_pars)
         output(call, call.result())
 
