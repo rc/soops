@@ -34,5 +34,7 @@ class Timer(Struct):
         self.total += self.dt
         return self.dt
 
-def get_timestamp(fmt='%Y-%m-%d-%H-%M-%S'):
-    return datetime.now().strftime(fmt)
+def get_timestamp(fmt='%Y-%m-%d-%H-%M-%S', dtime=None):
+    if dtime is None:
+        dtime = datetime.now()
+    return dtime.strftime(fmt)
