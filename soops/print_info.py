@@ -27,7 +27,7 @@ def explain_dir(dirname, keys):
 
 helps = {
     'explain' :
-    'explain the given directory name(s)',
+    'explain parameters used in the given output directory/directories',
     'shell' :
     'run ipython shell after all computations',
     'run_mod' :
@@ -37,7 +37,7 @@ helps = {
 def parse_args(args=None):
     parser = ArgumentParser(description=__doc__,
                             formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('-e', '--explain', metavar='output directory',
+    parser.add_argument('-e', '--explain', metavar='dirname',
                         action='store', dest='explain', nargs='+',
                         default=None, help=helps['explain'])
     parser.add_argument('--shell',
