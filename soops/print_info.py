@@ -17,9 +17,17 @@ def collect_keys(run_cmd, opt_args, omit=()):
     keys.difference_update(omit)
     return sorted(keys)
 
+def explain_dir(dirname, keys):
+    fname = op.join(dirname, 'soops-parameters.csv')
+    df = pd.read_csv(fname, index_col='pkey')
+    lmax = max(map(len, df.keys()))
+    fmt = '{{}} {{:>{}s}}: {{}}'.format(lmax)
+    for key, val in df.iloc[0].to_dict().items():
+        output(fmt.format('*' if key in keys else ' ', key, val))
+
 helps = {
     'explain' :
-    'explain the given directory name',
+    'explain the given directory name(s)',
     'shell' :
     'run ipython shell after all computations',
     'run_mod' :
@@ -30,7 +38,7 @@ def parse_args(args=None):
     parser = ArgumentParser(description=__doc__,
                             formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('-e', '--explain', metavar='output directory',
-                        action='store', dest='explain',
+                        action='store', dest='explain', nargs='+',
                         default=None, help=helps['explain'])
     parser.add_argument('--shell',
                         action='store_true', dest='shell',
@@ -60,12 +68,9 @@ def print_info(options):
             output('{:3d}: {}'.format(ik, key))
 
     else:
-        fname = op.join(options.explain, 'soops-parameters.csv')
-        df = pd.read_csv(fname, index_col='pkey')
-        lmax = max(map(len, keys))
-        fmt = '{{}} {{:>{}s}}: {{}}'.format(lmax)
-        for key, val in df.iloc[0].to_dict().items():
-            output(fmt.format('*' if key in keys else ' ', key, val))
+        for dirname in options.explain:
+            output(dirname)
+            explain_dir(dirname, keys)
 
     if options.shell:
         from soops.base import shell; shell()
