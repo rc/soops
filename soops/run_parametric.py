@@ -8,13 +8,15 @@ import os
 import os.path as op
 import itertools
 import subprocess
+import hashlib
 from datetime import datetime
 
+import pandas as pd
 from dask.distributed import as_completed, Client, LocalCluster
 
 from soops.parsing import parse_as_dict
 from soops.base import output, import_file
-from soops.ioutils import ensure_path, save_options
+from soops.ioutils import ensure_path, save_options, locate_files
 from soops.print_info import collect_keys
 from soops.timing import get_timestamp
 
@@ -54,6 +56,10 @@ def check_contracted(all_pars, options, key_order):
             break
     return ok
 
+def _get_iset(path):
+    iset = int(op.basename(path).split('-')[0])
+    return iset
+
 helps = {
     'dry_run':
     'perform a trial run with no commands executed',
@@ -67,8 +73,6 @@ helps = {
     'if given, compute additional parameters using the specified class',
     'n_workers' :
     'the number of dask workers [default: %(default)s]',
-    'create_output_dirs' :
-    'create parametric output directories if necessary',
     'run_function' :
     'function for running the parameterized command [default: %(default)s]',
     'silent' :
@@ -102,9 +106,6 @@ def parse_args(args=None):
     parser.add_argument('-n', '--n-workers', type=int, metavar='int',
                         action='store', dest='n_workers',
                         default=2, help=helps['n_workers'])
-    parser.add_argument('--create-output-dirs',
-                        action='store_true', dest='create_output_dirs',
-                        default=False, help=helps['create_output_dirs'])
     parser.add_argument('--run-function', action='store', dest='run_function',
                         choices=['subprocess.call', 'os.system'],
                         default='subprocess.call', help=helps['run_function'])
@@ -190,6 +191,30 @@ def run_parametric(options):
 
     output_dir_template = dconf[output_dir_key]
 
+    # Load existing parameter sets.
+    dfs = []
+    root_dir = output_dir_template.split('%s')[0]
+    for fname in locate_files('soops-parameters.csv', root_dir=root_dir):
+        if op.exists(fname):
+            try:
+                df = pd.read_csv(fname, index_col='pkey')
+
+            except pd.errors.EmptyDataError:
+                continue
+
+            else:
+                dfs.append(df)
+
+    if len(dfs):
+        apdf = pd.concat(dfs)
+        iseq = apdf['output_dir'].apply(_get_iset).max() + 1
+
+    else:
+        apdf = pd.DataFrame()
+        iseq = 0
+
+    pkeys = set(apdf.index)
+
     count = 0
     for _all_pars in itertools.product(*par_seqs):
         if not check_contracted(_all_pars, options, key_order): continue
@@ -198,27 +223,45 @@ def run_parametric(options):
     output('number of parameter sets:', count)
 
     calls = []
-    iset = 0
     for _all_pars in itertools.product(*par_seqs):
         if not check_contracted(_all_pars, options, key_order): continue
-        output('parameter set:', iset)
-        output(_all_pars)
 
         _it, keys, vals = zip(*_all_pars)
         all_pars = dict(zip(keys, vals))
         all_pars.update(compute_pars(all_pars))
-        it = '_'.join('%d' % ii for ii in _it)
+        it = ' '.join('%d' % ii for ii in _it)
 
-        podir = output_dir_template % it
+        pkey = hashlib.md5(str(all_pars).encode('utf-8')).hexdigest()
+        if pkey in pkeys:
+            podir = apdf.loc[pkey, 'output_dir']
+            iset = _get_iset(podir)
+
+        else:
+            iset = iseq
+            podir = output_dir_template % ('{:03d}-{}'.format(iset, pkey))
+
+
+        output('parameter set:', iset)
+        output(_all_pars)
+
         all_pars[output_dir_key] = podir
-        if options.create_output_dirs:
-            ensure_path(podir + op.sep)
+        ensure_path(podir + op.sep)
 
         all_pars['script_dir'] = op.normpath(op.dirname(options.run_mod))
 
         if  ((not options.dry_run) and
              ((recompute > 1) or
               (recompute and not is_finished(podir)))):
+            sdf = pd.DataFrame({'finished' : False, **all_pars}, index=[pkey])
+            sdf.to_csv(op.join(podir, 'soops-parameters.csv'),
+                       index_label='pkey')
+
+            if pkey in pkeys:
+                apdf.loc[pkey] = sdf.iloc[0]
+
+            else:
+                apdf = apdf.append(sdf)
+
             cmd = make_cmd(run_cmd, opt_args, all_pars)
             dtime = datetime.now()
             output('submitting at', get_timestamp(dtime=dtime))
@@ -233,28 +276,45 @@ def run_parametric(options):
 
             call.iset = iset
             call.it = it
+            call.pkey = pkey
+            call.podir = podir
+            call.update_parameters = True
             call.all_pars = all_pars
             call.dtime = dtime
             calls.append(call)
+
+            iseq += 1
 
         else:
             call = client.submit(lambda: None)
             call.iset = iset
             call.it = it
+            call.pkey = pkey
+            call.podir = podir
+            call.update_parameters = not apdf.loc[pkey, 'finished']
             call.all_pars = all_pars
             call.dtime = datetime.now()
             calls.append(call)
 
-        iset += 1
+    pfilename = op.join(options.output_dir, 'all_parameters.csv')
+    apdf.to_csv(pfilename, mode='w', index_label='pkey')
 
     for call in as_completed(calls):
         dtime = datetime.now()
         output(call.iset)
         output(call.it)
+        output('in', call.podir)
         output('completed at', get_timestamp(dtime=dtime) , 'in',
                dtime - call.dtime)
         output(call.all_pars)
         output(call, call.result())
+
+        if call.update_parameters:
+            apdf.loc[call.pkey, 'finished'] = True
+            sdf = apdf.loc[[call.pkey]]
+            sdf.to_csv(op.join(call.podir, 'soops-parameters.csv'),
+                       index_label='pkey')
+            apdf.to_csv(pfilename, mode='w', index_label='pkey')
 
     client.close()
 
