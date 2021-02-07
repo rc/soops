@@ -7,6 +7,8 @@ import sys
 import os.path as op
 import re
 
+import pandas as pd
+
 from soops.base import output, import_file
 
 def collect_keys(run_cmd, opt_args, omit=()):
@@ -58,13 +60,12 @@ def print_info(options):
             output('{:3d}: {}'.format(ik, key))
 
     else:
-        ips = op.split(op.dirname(options.explain))[-1].split('_')
-        if len(ips) != len(keys):
-            raise ValueError('{} is not compatible with {}!'
-                             .format(options.explain, options.run_mod))
-
-        for ik, key in enumerate(keys):
-            output('{:3d}: {:>3s} <- {}'.format(ik, ips[ik], key))
+        fname = op.join(options.explain, 'soops-parameters.csv')
+        df = pd.read_csv(fname, index_col='pkey')
+        lmax = max(map(len, keys))
+        fmt = '{{}} {{:>{}s}}: {{}}'.format(lmax)
+        for key, val in df.iloc[0].to_dict().items():
+            output(fmt.format('*' if key in keys else ' ', key, val))
 
     if options.shell:
         from soops.base import shell; shell()
