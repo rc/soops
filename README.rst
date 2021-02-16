@@ -389,11 +389,12 @@ provided:
 Then we are ready to run ``soops-scoop``::
 
   $ soops-scoop -h
-  usage: soops-scoop [-h] [-s column[,column,...]] [-r filename] [--write]
-                     [--filter filename[,filename,...]] [--no-csv]
-                     [--no-plugins] [--use-plugins name[,name,...] |
-                     --omit-plugins name[,name,...]] [-p module]
-                     [--plugin-args dict-like] [--shell] [--debug] [-o path]
+  usage: soops-scoop [-h] [-s column[,column,...]]
+                     [--filter filename[,filename,...]] [--no-plugins]
+                     [--use-plugins name[,name,...] | --omit-plugins
+                     name[,name,...]] [-p module] [--plugin-args dict-like]
+                     [--results filename] [--no-csv] [-r] [--write] [--shell]
+                     [--debug] [-o path]
                      scoop_mod directories [directories ...]
 
   Scoop output files.
@@ -406,14 +407,9 @@ Then we are ready to run ``soops-scoop``::
     -h, --help            show this help message and exit
     -s column[,column,...], --sort column[,column,...]
                           column keys for sorting of DataFrame rows
-    -r filename, --results filename
-                          reuse previously scooped results file
-    --write               write results files even when results were loaded
-                          using --results option
     --filter filename[,filename,...]
                           use only DataFrame rows with given files successfully
                           scooped
-    --no-csv              do not save results as CSV (use only HDF5)
     --no-plugins          do not call post-processing plugins
     --use-plugins name[,name,...]
                           use only the named plugins (no effect with --no-
@@ -426,6 +422,11 @@ Then we are ready to run ``soops-scoop``::
     --plugin-args dict-like
                           optional arguments passed to plugins given as
                           plugin_name={key1=val1, key2=val2, ...}, ...
+    --results filename    results file name [default: <output_dir>/results.h5]
+    --no-csv              do not save results as CSV (use only HDF5)
+    -r, --reuse           reuse previously scooped results file
+    --write               write results files even when results were loaded
+                          using --reuse option
     --shell               run ipython shell after all computations
     --debug               automatically start debugger when an exception is
                           raised
@@ -533,9 +534,9 @@ plugin allows plotting the all results combined:
 
 Then, running::
 
-  soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r output/study/results.h5
+  soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r
 
-reuses the ``results.h5`` file and plots the combined results:
+reuses the ``output/study/results.h5`` file and plots the combined results:
 
 .. image:: doc/readme/win_rates.png
    :alt: win_rates.png
@@ -543,7 +544,7 @@ reuses the ``results.h5`` file and plots the combined results:
 It is possible to pass arguments to plugins using ``--plugin-args`` option, as
 follows::
 
-  soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r output/study/results.h5 --plugin-args=plot_win_rates={colormap_name='plasma'}
+  soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r --plugin-args=plot_win_rates={colormap_name='plasma'}
 
 Notes
 '''''
