@@ -209,11 +209,7 @@ def run_plugins(info, df, output_dir, par_keys, store_filename,
 
 helps = {
     'sort' : 'column keys for sorting of DataFrame rows',
-    'results' : 'reuse previously scooped results file',
-    'write' : 'write results files even when results were loaded using '
-    '--results option',
     'filter' : 'use only DataFrame rows with given files successfully scooped',
-    'no_csv' : 'do not save results as CSV (use only HDF5)',
     'no_plugins' : 'do not call post-processing plugins',
     'use_plugins' : 'use only the named plugins (no effect with --no-plugins)',
     'omit_plugins' : 'omit the named plugins (no effect with --no-plugins)',
@@ -222,6 +218,11 @@ helps = {
     'plugin_args' :
     """optional arguments passed to plugins given as plugin_name={key1=val1,
        key2=val2, ...}, ...""",
+    'results' : 'results file name [default: <output_dir>/results.h5]',
+    'no_csv' : 'do not save results as CSV (use only HDF5)',
+    'reuse' : 'reuse previously scooped results file',
+    'write' : 'write results files even when results were loaded using '
+    '--reuse option',
     'shell' : 'run ipython shell after all computations',
     'debug' : 'automatically start debugger when an exception is raised',
     'output_dir' : 'output directory [default: %(default)s]',
@@ -235,18 +236,9 @@ def parse_args(args=None):
     parser.add_argument('-s', '--sort', metavar='column[,column,...]',
                         action='store', dest='sort',
                         default=None, help=helps['sort'])
-    parser.add_argument('-r', '--results', metavar='filename',
-                        action='store', dest='results',
-                        default=None, help=helps['results'])
-    parser.add_argument('--write',
-                        action='store_true', dest='write',
-                        default=False, help=helps['write'])
     parser.add_argument('--filter', metavar='filename[,filename,...]',
                         action='store', dest='filter',
                         default=None, help=helps['filter'])
-    parser.add_argument('--no-csv',
-                        action='store_false', dest='save_csv',
-                        default=True, help=helps['no_csv'])
     parser.add_argument('--no-plugins',
                         action='store_false', dest='call_plugins',
                         default=True, help=helps['no_plugins'])
@@ -263,6 +255,18 @@ def parse_args(args=None):
     parser.add_argument('--plugin-args', metavar='dict-like',
                         action='store', dest='plugin_args',
                         default=None, help=helps['plugin_args'])
+    parser.add_argument('--results', metavar='filename',
+                        action='store', dest='results',
+                        default=None, help=helps['results'])
+    parser.add_argument('--no-csv',
+                        action='store_false', dest='save_csv',
+                        default=True, help=helps['no_csv'])
+    parser.add_argument('-r', '--reuse',
+                        action='store_true', dest='reuse',
+                        default=False, help=helps['reuse'])
+    parser.add_argument('--write',
+                        action='store_true', dest='write',
+                        default=False, help=helps['write'])
     parser.add_argument('--shell',
                         action='store_true', dest='shell',
                         default=False, help=helps['shell'])
@@ -293,6 +297,9 @@ def parse_args(args=None):
     if options.plugin_args is not None:
         options.plugin_args = parse_as_dict(options.plugin_args)
 
+    if options.results is None:
+        options.results = op.join(options.output_dir, 'results.h5')
+
     return options
 
 def scoop_outputs(options):
@@ -300,7 +307,7 @@ def scoop_outputs(options):
 
     scoop_mod = import_file(options.scoop_mod)
 
-    if (options.results is None
+    if (not options.reuse
         or not (op.exists(options.results) and op.isfile(options.results))):
         new_results = True
 
@@ -349,7 +356,7 @@ def scoop_outputs(options):
     warnings.simplefilter(action='ignore',
                           category=pd.errors.PerformanceWarning)
 
-    results_filename = op.join(options.output_dir, 'results.h5')
+    results_filename = options.results
     ensure_path(results_filename)
     if new_results or options.write:
         with pd.HDFStore(results_filename, mode='w') as store:
