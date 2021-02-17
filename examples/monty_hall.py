@@ -20,11 +20,11 @@ Examples
 
   soops-info examples/monty_hall.py -e output/study/00*
 
-  soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r output/study/results.h5
+  soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study
 
-  soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r output/study/results.h5 --plugin-args=plot_win_rates={colormap_name='plasma'}
+  soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r --plugin-args=plot_win_rates={colormap_name='plasma'}
 
-  soops-scoop examples/monty_hall.py output/study/ -o output/study -r output/study/results.h5 --no-plugins --shell
+  soops-scoop examples/monty_hall.py output/study/ -o output/study -r --no-plugins --shell
 """
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import os
