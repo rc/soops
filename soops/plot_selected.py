@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 
 from soops.base import output
 
+def select_by_keys(df, keys):
+    selected = {key : sorted(df[key].unique()) for key in keys}
+    return selected
+
 def normalize_selected(selected):
     nselected = selected.copy()
     for key, svals in selected.items():
@@ -64,6 +68,13 @@ def setup_plot_styles(selected, raw_styles):
                 styles[key][skey] = [svals]
 
     return styles
+
+def get_cat_style(selected, key, styles, skey):
+    cdict = {cat : val for cat, val in zip(selected[key], styles[key][skey])}
+    return cdict
+
+def select_cat_style(cdict, cats):
+    return [cdict[cat] for cat in cats]
 
 def get_plot_style(indices, styles):
     style_kwargs = {}
