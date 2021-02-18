@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 
 from soops.base import output
 
+def select_by_keys(df, keys):
+    selected = {key : sorted(df[key].unique()) for key in keys}
+    return selected
+
 def normalize_selected(selected):
     nselected = selected.copy()
     for key, svals in selected.items():
