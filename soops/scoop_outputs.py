@@ -164,6 +164,19 @@ def get_uniques(df, columns):
 
     return uniques
 
+def init_plugin_data(df, par_keys, output_dir, store_filename):
+    par_uniques = get_uniques(df, par_keys)
+    multi_par_keys = [key for key, vals in par_uniques.items()
+                      if len(vals) > 1]
+    multi_par_uniques = {key : par_uniques[key] for key in multi_par_keys}
+    data = Struct(par_keys=par_keys,
+                  multi_par_keys=multi_par_keys,
+                  par_uniques=par_uniques,
+                  multi_par_uniques=multi_par_uniques,
+                  output_dir=output_dir,
+                  store_filename=store_filename)
+    return data
+
 def run_plugins(info, df, output_dir, par_keys, store_filename,
                 plugin_args=None):
     if not len(info):
@@ -188,16 +201,7 @@ def run_plugins(info, df, output_dir, par_keys, store_filename,
         return _fun
 
     output('run plugins:')
-    par_uniques = get_uniques(df, par_keys)
-    multi_par_keys = [key for key, vals in par_uniques.items()
-                      if len(vals) > 1]
-    multi_par_uniques = {key : par_uniques[key] for key in multi_par_keys}
-    data = Struct(par_keys=par_keys,
-                  multi_par_keys=multi_par_keys,
-                  par_uniques=par_uniques,
-                  multi_par_uniques=multi_par_uniques,
-                  output_dir=output_dir,
-                  store_filename=store_filename)
+    data = init_plugin_data(df, par_keys, output_dir, store_filename)
     for fun in info:
         output('running {}()...'.format(fun.__name__))
         wfun = wrap_fun(fun)
