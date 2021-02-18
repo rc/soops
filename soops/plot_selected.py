@@ -69,6 +69,13 @@ def setup_plot_styles(selected, raw_styles):
 
     return styles
 
+def get_cat_style(selected, key, styles, skey):
+    cdict = {cat : val for cat, val in zip(selected[key], styles[key][skey])}
+    return cdict
+
+def select_cat_style(cdict, cats):
+    return [cdict[cat] for cat in cats]
+
 def get_plot_style(indices, styles):
     style_kwargs = {}
     for key, key_styles in styles.items():
