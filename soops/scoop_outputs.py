@@ -90,6 +90,8 @@ def apply_scoops(info, directories, debug_mode=False):
                     paths = list(locate_files(path))
                     output('expanded:', [path.replace(rdir, '<rdir>')
                                          for path in paths])
+                    if len(paths) == 0:
+                        paths = None
 
                 else:
                     paths = None
