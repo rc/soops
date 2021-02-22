@@ -107,8 +107,8 @@ def parse_args(args=None):
                         action='store', dest='n_workers',
                         default=2, help=helps['n_workers'])
     parser.add_argument('--run-function', action='store', dest='run_function',
-                        choices=['subprocess.call', 'os.system'],
-                        default='subprocess.call', help=helps['run_function'])
+                        choices=['subprocess.run', 'os.system'],
+                        default='subprocess.run', help=helps['run_function'])
     parser.add_argument('--silent',
                         action='store_false', dest='verbose',
                         default=True, help=helps['silent'])
@@ -267,8 +267,8 @@ def run_parametric(options):
             output('submitting at', get_timestamp(dtime=dtime))
             output(cmd)
 
-            if options.run_function == 'subprocess.call':
-                call = client.submit(subprocess.call, cmd,
+            if options.run_function == 'subprocess.run':
+                call = client.submit(subprocess.run, cmd,
                                      shell=True, pure=False)
 
             else:
