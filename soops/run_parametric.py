@@ -272,7 +272,7 @@ def run_parametric(options):
                                      shell=True, pure=False)
 
             else:
-                call = client.submit(os.system, cmd)
+                call = client.submit(os.system, cmd, pure=False)
 
             call.iset = iset
             call.it = it
