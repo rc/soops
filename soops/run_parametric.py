@@ -45,6 +45,22 @@ def make_cmd(run_cmd, opt_args, all_pars):
     cmd = cmd.format(**all_pars)
     return cmd
 
+def run_with_psutil(cmd, options):
+    import psutil
+
+    proc = psutil.Popen(cmd, shell=True)
+    try:
+        retcode = proc.wait(timeout=options.timeout)
+        out = subprocess.CompletedProcess(proc.args, retcode)
+
+    except psutil.TimeoutExpired as exc:
+        for cproc in proc.children(recursive=True):
+            cproc.kill()
+        proc.kill()
+        out = exc
+
+    return out
+
 def check_contracted(all_pars, options, key_order):
     if options.contract is None: return True
 
@@ -75,6 +91,9 @@ helps = {
     'the number of dask workers [default: %(default)s]',
     'run_function' :
     'function for running the parameterized command [default: %(default)s]',
+    'timeout' :
+    """if given, the timeout in seconds; requires setting
+       --run-function=psutil.Popen""",
     'silent' :
     'do not print messages to screen',
     'shell' :
@@ -107,8 +126,11 @@ def parse_args(args=None):
                         action='store', dest='n_workers',
                         default=2, help=helps['n_workers'])
     parser.add_argument('--run-function', action='store', dest='run_function',
-                        choices=['subprocess.run', 'os.system'],
+                        choices=['subprocess.run', 'psutil.Popen', 'os.system'],
                         default='subprocess.run', help=helps['run_function'])
+    parser.add_argument('-t', '--timeout', type=float, metavar='float',
+                        action='store', dest='timeout',
+                        default=None, help=helps['timeout'])
     parser.add_argument('--silent',
                         action='store_false', dest='verbose',
                         default=True, help=helps['silent'])
@@ -125,6 +147,11 @@ def parse_args(args=None):
     if options.contract is not None:
         options.contract = [[ii.strip() for ii in contract.split('+')]
                             for contract in options.contract.split(',')]
+
+    if ((options.timeout is not None) and
+        (options.run_function != 'psutil.Popen')):
+        raise ValueError('to use --timeout, "pip install psutil"'
+                         ' and set --run-function=psutil.Popen')
 
     return options
 
@@ -271,6 +298,10 @@ def run_parametric(options):
                 call = client.submit(subprocess.run, cmd,
                                      shell=True, pure=False)
 
+            elif options.run_function == 'psutil.Popen':
+                call = client.submit(run_with_psutil, cmd, options,
+                                     pure=False)
+
             else:
                 call = client.submit(os.system, cmd, pure=False)
 
@@ -307,10 +338,16 @@ def run_parametric(options):
         output('completed at', get_timestamp(dtime=dtime) , 'in',
                dtime - call.dtime)
         output(call.all_pars)
-        output(call, call.result())
-
+        output(call)
+        output(call.result())
         if call.update_parameters:
-            apdf.loc[call.pkey, 'finished'] = True
+            finished = True
+            if options.timeout is not None:
+                import psutil
+                if isinstance(call.result(), psutil.TimeoutExpired):
+                    finished = False
+
+            apdf.loc[call.pkey, 'finished'] = finished
             sdf = apdf.loc[[call.pkey]]
             sdf.to_csv(op.join(call.podir, 'soops-parameters.csv'),
                        index_label='pkey')
