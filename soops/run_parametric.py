@@ -15,7 +15,7 @@ import pandas as pd
 from dask.distributed import as_completed, Client, LocalCluster
 
 from soops.parsing import parse_as_dict
-from soops.base import output, import_file
+from soops.base import output, import_file, Struct
 from soops.ioutils import ensure_path, save_options, locate_files
 from soops.print_info import collect_keys
 from soops.timing import get_timestamp
@@ -83,6 +83,10 @@ helps = {
      """recomputation strategy: 0: do not recompute,
         1: recompute only if is_finished() returns False,
         2: always recompute [default:  %(default)s]""",
+    'generate_pars' :
+    """if given, generate values of parameters using the specified class;
+       the generated parameters must be set to @generate in
+       the parametric study configuration,""",
     'contract' :
     'list of option keys that should be contracted to vary in lockstep',
     'compute_pars' :
@@ -115,6 +119,10 @@ def parse_args(args=None):
     parser.add_argument('-r', '--recompute', action='store', type=int,
                         dest='recompute', choices=[0, 1, 2],
                         default=1, help=helps['recompute'])
+    parser.add_argument('--generate-pars',
+                        metavar='dict-like: class=class_name,par0=val0,...',
+                        action='store', dest='generate_pars',
+                        default=None, help=helps['generate_pars'])
     parser.add_argument('-c', '--contract', metavar='key1+key2+..., ...',
                         action='store', dest='contract',
                         default=None, help=helps['contract'])
@@ -143,6 +151,10 @@ def parse_args(args=None):
     parser.add_argument('conf', help=helps['conf'])
     parser.add_argument('run_mod', help=helps['run_mod'])
     options = parser.parse_args(args=args)
+
+    if options.generate_pars is not None:
+         options.generate_pars = parse_as_dict(options.generate_pars,
+                                               free_word=True)
 
     if options.contract is not None:
         options.contract = [[ii.strip() for ii in contract.split('+')]
@@ -178,6 +190,21 @@ def run_parametric(options):
         is_finished = _is_finished
 
     dconf = parse_as_dict(options.conf, free_word=True)
+
+    if options.generate_pars is not None:
+        dgenerate_pars = options.generate_pars.copy()
+
+        fun_name = dgenerate_pars.pop('function')
+        generate_pars = getattr(run_mod, fun_name)
+
+        gkeys = [key for key, val in dconf.items() if val == '@generate']
+
+        gconf = generate_pars(Struct(dgenerate_pars), gkeys, dconf, options)
+        if set(gkeys) != set(gconf.keys()):
+            raise ValueError('generated keys mismatch! (conf: {}, generated: {})'
+                             .format(set(gkeys), set(gconf.keys())))
+
+        dconf.update(gconf)
 
     keys = set(dconf.keys())
     keys.update(opt_args.keys())
