@@ -148,6 +148,10 @@ def parse_args(args=None):
         options.contract = [[ii.strip() for ii in contract.split('+')]
                             for contract in options.contract.split(',')]
 
+    if options.compute_pars is not None:
+         options.compute_pars = parse_as_dict(options.compute_pars,
+                                              free_word=True)
+
     if ((options.timeout is not None) and
         (options.run_function != 'psutil.Popen')):
         raise ValueError('to use --timeout, "pip install psutil"'
@@ -179,8 +183,7 @@ def run_parametric(options):
     keys.update(opt_args.keys())
 
     if options.compute_pars is not None:
-        dcompute_pars = parse_as_dict(options.compute_pars, free_word=True)
-        options.compute_pars = dcompute_pars.copy()
+        dcompute_pars = options.compute_pars.copy()
 
         class_name = dcompute_pars.pop('class')
         ComputePars = getattr(run_mod, class_name)
@@ -203,9 +206,6 @@ def run_parametric(options):
                       combined=options.verbose)
 
     recompute = options.recompute
-
-    cluster = LocalCluster(n_workers=options.n_workers, threads_per_worker=1)
-    client = Client(cluster)
 
     par_seqs = [make_key_list(key, dconf.get(key, '@undefined'))
                 for key in key_order]
@@ -249,6 +249,9 @@ def run_parametric(options):
 
     output('number of parameter sets:', count)
 
+    cluster = LocalCluster(n_workers=options.n_workers, threads_per_worker=1)
+    client = Client(cluster)
+
     calls = []
     for _all_pars in itertools.product(*par_seqs):
         if not check_contracted(_all_pars, options, key_order): continue
@@ -266,7 +269,6 @@ def run_parametric(options):
         else:
             iset = iseq
             podir = output_dir_template % ('{:03d}-{}'.format(iset, pkey))
-
 
         output('parameter set:', iset)
         output(_all_pars)
