@@ -191,8 +191,9 @@ Putting `get_run_info()` into our script allows running a parametric study using
   $ soops-run -h
   usage: soops-run [-h] [--dry-run] [-r {0,1,2}] [-c key1+key2+..., ...]
                    [--compute-pars dict-like: class=class_name,par0=val0,...]
-                   [-n int] [--run-function {subprocess.call,os.system}]
-                   [--silent] [--shell] [-o path]
+                   [-n int]
+                   [--run-function {subprocess.run,psutil.Popen,os.system}]
+                   [-t float] [--silent] [--shell] [-o path]
                    conf run_mod
 
   Run parametric studies.
@@ -216,9 +217,12 @@ Putting `get_run_info()` into our script allows running a parametric study using
                           specified class
     -n int, --n-workers int
                           the number of dask workers [default: 2]
-    --run-function {subprocess.call,os.system}
+    --run-function {subprocess.run,psutil.Popen,os.system}
                           function for running the parameterized command
-                          [default: subprocess.call]
+                          [default: subprocess.run]
+    -t float, --timeout float
+                          if given, the timeout in seconds; requires setting
+                          --run-function=psutil.Popen
     --silent              do not print messages to screen
     --shell               run ipython shell after all computations
     -o path, --output-dir path
