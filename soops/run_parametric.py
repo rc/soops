@@ -198,6 +198,7 @@ def run_parametric(options):
         generate_pars = getattr(run_mod, fun_name)
 
         gkeys = [key for key, val in dconf.items() if val == '@generate']
+        output('generated parameters:', gkeys)
 
         gconf = generate_pars(Struct(dgenerate_pars), gkeys, dconf, options)
         if set(gkeys) != set(gconf.keys()):
