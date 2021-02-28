@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import itertools
 
 class AttrDict(dict):
     """
@@ -210,6 +211,36 @@ class Output(Struct):
         return self.output_function
 
 output = Output('soops:')
+
+def product(*seqs, contracts=None):
+    """
+    Like `itertools.product()`, but loops in contracts vary in lockstep.
+    """
+    if contracts is None:
+        yield from itertools.product(*seqs)
+        return
+
+    if contracts is not None:
+        ifollowing = [[ii for ii in contract[1:]] for contract in contracts]
+
+    aux = set(sum(ifollowing, []))
+    pindices, pseqs = zip(*itertools.filterfalse(
+        lambda x: x[0] in aux,
+        [(ip, enumerate(seq)) for ip, seq in enumerate(seqs)]
+    ))
+
+    for pout in itertools.product(*pseqs):
+        out = [0] * len(seqs)
+        for ip, ii in enumerate(pindices):
+            out[ii] = pout[ip][1]
+
+        for ic, contract in enumerate(contracts):
+            ii = pout[pindices.index(contract[0])][0]
+            for ik in ifollowing[ic]:
+                val = seqs[ik][ii]
+                out[ik] = val
+
+        yield out
 
 def ordered_iteritems(adict):
     keys = sorted(adict.keys())

@@ -6,7 +6,6 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import sys
 import os
 import os.path as op
-import itertools
 import subprocess
 import hashlib
 from datetime import datetime
@@ -15,7 +14,7 @@ import pandas as pd
 from dask.distributed import as_completed, Client, LocalCluster
 
 from soops.parsing import parse_as_dict
-from soops.base import output, import_file, Struct
+from soops.base import output, import_file, product, Struct
 from soops.ioutils import ensure_path, save_options, locate_files
 from soops.print_info import collect_keys
 from soops.timing import get_timestamp
@@ -60,17 +59,6 @@ def run_with_psutil(cmd, options):
         out = exc
 
     return out
-
-def check_contracted(all_pars, options, key_order):
-    if options.contract is None: return True
-
-    ok = True
-    for contract in options.contract:
-        iis = [all_pars[key_order.index(key)][0] for key in contract]
-        if len(set(iis)) > 1:
-            ok = False
-            break
-    return ok
 
 def _get_iset(path):
     iset = int(op.basename(path).split('-')[0])
@@ -238,6 +226,15 @@ def run_parametric(options):
     par_seqs = [make_key_list(key, dconf.get(key, '@undefined'))
                 for key in key_order]
 
+    contracts = [[key_order.index(key) for key in contract]
+                 for contract in options.contract]
+    for ic, contract in enumerate(contracts):
+        sizes = {len(par_seqs[ii]) for ii in contract}
+        if len(sizes) != 1:
+            raise ValueError('contracted parameter sequences {} have {}'
+                             ' different lengths!'
+                             .format(options.contract[ic], len(sizes)))
+
     if options.compute_pars is not None:
         compute_pars = ComputePars(dcompute_pars, par_seqs, key_order, options)
 
@@ -271,8 +268,7 @@ def run_parametric(options):
     pkeys = set(apdf.index)
 
     count = 0
-    for _all_pars in itertools.product(*par_seqs):
-        if not check_contracted(_all_pars, options, key_order): continue
+    for _all_pars in product(*par_seqs, contracts=contracts):
         count += 1
 
     output('number of parameter sets:', count)
@@ -281,9 +277,7 @@ def run_parametric(options):
     client = Client(cluster)
 
     calls = []
-    for _all_pars in itertools.product(*par_seqs):
-        if not check_contracted(_all_pars, options, key_order): continue
-
+    for _all_pars in product(*par_seqs, contracts=contracts):
         _it, keys, vals = zip(*_all_pars)
         all_pars = dict(zip(keys, vals))
         all_pars.update(compute_pars(all_pars))
