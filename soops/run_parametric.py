@@ -226,14 +226,18 @@ def run_parametric(options):
     par_seqs = [make_key_list(key, dconf.get(key, '@undefined'))
                 for key in key_order]
 
-    contracts = [[key_order.index(key) for key in contract]
-                 for contract in options.contract]
-    for ic, contract in enumerate(contracts):
-        sizes = {len(par_seqs[ii]) for ii in contract}
-        if len(sizes) != 1:
-            raise ValueError('contracted parameter sequences {} have {}'
-                             ' different lengths!'
-                             .format(options.contract[ic], len(sizes)))
+    if options.contract is not None:
+        contracts = [[key_order.index(key) for key in contract]
+                     for contract in options.contract]
+        for ic, contract in enumerate(contracts):
+            sizes = {len(par_seqs[ii]) for ii in contract}
+            if len(sizes) != 1:
+                raise ValueError('contracted parameter sequences {} have {}'
+                                 ' different lengths!'
+                                 .format(options.contract[ic], len(sizes)))
+
+    else:
+        contracts = None
 
     if options.compute_pars is not None:
         compute_pars = ComputePars(dcompute_pars, par_seqs, key_order, options)
@@ -259,7 +263,7 @@ def run_parametric(options):
 
     if len(dfs):
         apdf = pd.concat(dfs)
-        iseq = apdf['output_dir'].apply(_get_iset).max() + 1
+        iseq = apdf[output_dir_key].apply(_get_iset).max() + 1
 
     else:
         apdf = pd.DataFrame()
@@ -285,7 +289,7 @@ def run_parametric(options):
 
         pkey = hashlib.md5(str(all_pars).encode('utf-8')).hexdigest()
         if pkey in pkeys:
-            podir = apdf.loc[pkey, 'output_dir']
+            podir = apdf.loc[pkey, output_dir_key]
             iset = _get_iset(podir)
 
         else:
