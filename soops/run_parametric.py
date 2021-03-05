@@ -263,7 +263,7 @@ def run_parametric(options):
 
     if len(dfs):
         apdf = pd.concat(dfs)
-        iseq = apdf['output_dir'].apply(_get_iset).max() + 1
+        iseq = apdf[output_dir_key].apply(_get_iset).max() + 1
 
     else:
         apdf = pd.DataFrame()
@@ -289,7 +289,7 @@ def run_parametric(options):
 
         pkey = hashlib.md5(str(all_pars).encode('utf-8')).hexdigest()
         if pkey in pkeys:
-            podir = apdf.loc[pkey, 'output_dir']
+            podir = apdf.loc[pkey, output_dir_key]
             iset = _get_iset(podir)
 
         else:
