@@ -226,14 +226,18 @@ def run_parametric(options):
     par_seqs = [make_key_list(key, dconf.get(key, '@undefined'))
                 for key in key_order]
 
-    contracts = [[key_order.index(key) for key in contract]
-                 for contract in options.contract]
-    for ic, contract in enumerate(contracts):
-        sizes = {len(par_seqs[ii]) for ii in contract}
-        if len(sizes) != 1:
-            raise ValueError('contracted parameter sequences {} have {}'
-                             ' different lengths!'
-                             .format(options.contract[ic], len(sizes)))
+    if options.contract is not None:
+        contracts = [[key_order.index(key) for key in contract]
+                     for contract in options.contract]
+        for ic, contract in enumerate(contracts):
+            sizes = {len(par_seqs[ii]) for ii in contract}
+            if len(sizes) != 1:
+                raise ValueError('contracted parameter sequences {} have {}'
+                                 ' different lengths!'
+                                 .format(options.contract[ic], len(sizes)))
+
+    else:
+        contracts = None
 
     if options.compute_pars is not None:
         compute_pars = ComputePars(dcompute_pars, par_seqs, key_order, options)
