@@ -176,13 +176,14 @@ The `get_run_info()` functions should provide four items:
    command. Note that the script must have an argument allowing an output
    directory specification.
 
-#. A function ``is_finished(pars)``, where `pars` is the dictionary of the
-   actual values of the script arguments. The dictionary contains the output
-   directory argument of the script and the function should return True,
-   whenever the results are already present in the given output directory.
-   Instead of a function, a file name can be given, as in `get_run_info()`
-   above. Then the existence of a file with the specified name means that the
-   results are present in the output directory.
+#. A function ``is_finished(pars, options)``, where `pars` is the dictionary of
+   the actual values of the script arguments and `options` are `soops-run`
+   options, see below. The dictionary contains the output directory argument of
+   the script and the function should return True, whenever the results are
+   already present in the given output directory. Instead of a function, a file
+   name can be given, as in `get_run_info()` above. Then the existence of a
+   file with the specified name means that the results are present in the
+   output directory.
 
 Run Parametric Study
 ''''''''''''''''''''
