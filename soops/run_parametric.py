@@ -172,7 +172,8 @@ def run_parametric(options):
         return
 
     if isinstance(_is_finished, str):
-        is_finished = lambda x: op.exists(op.join(x, _is_finished))
+        is_finished = (lambda pars, options:
+                       op.exists(op.join(pars[output_dir_key], _is_finished)))
 
     else:
         is_finished = _is_finished
@@ -220,8 +221,6 @@ def run_parametric(options):
 
     output.set_output(filename=op.join(options.output_dir, 'output_log.txt'),
                       combined=options.verbose)
-
-    recompute = options.recompute
 
     par_seqs = [make_key_list(key, dconf.get(key, '@undefined'))
                 for key in key_order]
@@ -304,9 +303,11 @@ def run_parametric(options):
 
         all_pars['script_dir'] = op.normpath(op.dirname(options.run_mod))
 
-        if  ((not options.dry_run) and
-             ((recompute > 1) or
-              (recompute and not is_finished(podir)))):
+        recompute = options.recompute
+        if ((not options.dry_run) and
+            ((recompute > 1) or
+             (recompute and not is_finished(all_pars, options)))):
+
             sdf = pd.DataFrame({'finished' : False, **all_pars}, index=[pkey])
             sdf.to_csv(op.join(podir, 'soops-parameters.csv'),
                        index_label='pkey')
