@@ -5,6 +5,7 @@ Scoop output files.
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import sys
 import os.path as op
+import glob
 from datetime import datetime
 import warnings
 
@@ -233,7 +234,10 @@ helps = {
     'debug' : 'automatically start debugger when an exception is raised',
     'output_dir' : 'output directory [default: %(default)s]',
     'scoop_mod' : 'the importable script/module with get_scoop_info()',
-    'directories' : 'results directories',
+    'directories' :
+    """results directories. On "Argument list too long" system error,
+       enclose the directories matching pattern in "", it will be expanded
+       using glob.glob().""",
 }
 
 def parse_args(args=None):
@@ -305,6 +309,12 @@ def parse_args(args=None):
 
     if options.results is None:
         options.results = op.join(options.output_dir, 'results.h5')
+
+    directories = []
+    for directory in options.directories:
+        expanded = glob.glob(directory + op.sep)
+        directories.extend(expanded)
+    options.directories = directories
 
     return options
 
