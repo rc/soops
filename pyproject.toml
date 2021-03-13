@@ -1,0 +1,5 @@
+[build-system]
+# "pyparsing" is in requirements, because soops.__version__ is used to get the
+# version in setup.cfg and "setuptools>=46.4.0" is for attr: attribute access.
+requires = ["setuptools>=46.4.0", "wheel", "pyparsing"]
+build-backend = "setuptools.build_meta"
