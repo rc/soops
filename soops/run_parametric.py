@@ -10,6 +10,7 @@ import subprocess
 import hashlib
 from datetime import datetime
 
+import numpy as np
 import pandas as pd
 from dask.distributed import as_completed, Client, LocalCluster
 
@@ -195,6 +196,13 @@ def run_parametric(options):
         is_finished = _is_finished
 
     dconf = parse_as_dict(options.conf, free_word=True)
+
+    seq_keys = [key for key, val in dconf.items()
+                if isinstance(val, str) and
+                (val.startswith('@arange') or val.startswith('@linspace'))]
+    for key in seq_keys:
+        sfun = 'np.' + dconf[key][1:]
+        dconf[key] = list(eval(sfun, {'np' : np}, {}))
 
     if options.generate_pars is not None:
         dgenerate_pars = options.generate_pars.copy()
