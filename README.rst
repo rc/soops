@@ -192,7 +192,9 @@ Putting `get_run_info()` into our script allows running a parametric study using
 `soops-run`::
 
   $ soops-run -h
-  usage: soops-run [-h] [--dry-run] [-r {0,1,2}] [-c key1+key2+..., ...]
+  usage: soops-run [-h] [--dry-run] [-r {0,1,2}]
+                   [--generate-pars dict-like: class=class_name,par0=val0,...]
+                   [-c key1+key2+..., ...]
                    [--compute-pars dict-like: class=class_name,par0=val0,...]
                    [-n int]
                    [--run-function {subprocess.run,psutil.Popen,os.system}]
@@ -212,6 +214,11 @@ Putting `get_run_info()` into our script allows running a parametric study using
                           recomputation strategy: 0: do not recompute, 1:
                           recompute only if is_finished() returns False, 2:
                           always recompute [default: 1]
+    --generate-pars dict-like: class=class_name,par0=val0,...
+                          if given, generate values of parameters using the
+                          specified function; the generated parameters must be
+                          set to @generate in the parametric study
+                          configuration,
     -c key1+key2+..., ..., --contract key1+key2+..., ...
                           list of option keys that should be contracted to vary
                           in lockstep
