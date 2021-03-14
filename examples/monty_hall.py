@@ -25,10 +25,17 @@ Examples
   soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r --plugin-args=plot_win_rates={colormap_name='plasma'}
 
   soops-scoop examples/monty_hall.py output/study/ -o output/study -r --no-plugins --shell
+
+- Use --generate-pars instead of listing values of --seed and --switch::
+
+  soops-run -r 1 -n 3 -c='--switch + --seed' -o output/study2 "python='python3', output_dir='output/study2/%s', --num=[100,1000,10000], --repeat=[10,20], --switch=@generate, --seed=@generate, --host=['random', 'first'], --silent=@defined, --no-show=@defined" --generate-pars="function=generate_seed_switch, seeds=['@undefined', 12345], switches=['@undefined', '@defined']" examples/monty_hall.py
+
+  soops-scoop examples/monty_hall.py output/study2/0* -s rdir -o output/study2
 """
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import os
 from functools import partial
+from itertools import product
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -61,6 +68,23 @@ def get_run_info():
     is_finished_basename = 'wins.png'
 
     return run_cmd, opt_args, output_dir_key, is_finished_basename
+
+def generate_seed_switch(args, gkeys, dconf, options):
+    """
+    Parameters
+    ----------
+    args : Struct
+        The arguments passed from the command line.
+    gkeys : list
+        The list of option keys to generate.
+    dconf : dict
+        The parsed parameters of the parametric study.
+    options : Namespace
+        The soops-run command line options.
+    """
+    seeds, switches = zip(*product(args.seeds, args.switches))
+    gconf = {'--seed' : list(seeds), '--switch' : list(switches)}
+    return gconf
 
 def get_scoop_info():
     info = [

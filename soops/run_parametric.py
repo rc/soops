@@ -88,7 +88,7 @@ helps = {
         1: recompute only if is_finished() returns False,
         2: always recompute [default:  %(default)s]""",
     'generate_pars' :
-    """if given, generate values of parameters using the specified class;
+    """if given, generate values of parameters using the specified function;
        the generated parameters must be set to @generate in
        the parametric study configuration,""",
     'contract' :

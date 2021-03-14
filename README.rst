@@ -192,7 +192,9 @@ Putting `get_run_info()` into our script allows running a parametric study using
 `soops-run`::
 
   $ soops-run -h
-  usage: soops-run [-h] [--dry-run] [-r {0,1,2}] [-c key1+key2+..., ...]
+  usage: soops-run [-h] [--dry-run] [-r {0,1,2}]
+                   [--generate-pars dict-like: class=class_name,par0=val0,...]
+                   [-c key1+key2+..., ...]
                    [--compute-pars dict-like: class=class_name,par0=val0,...]
                    [-n int]
                    [--run-function {subprocess.run,psutil.Popen,os.system}]
@@ -212,6 +214,11 @@ Putting `get_run_info()` into our script allows running a parametric study using
                           recomputation strategy: 0: do not recompute, 1:
                           recompute only if is_finished() returns False, 2:
                           always recompute [default: 1]
+    --generate-pars dict-like: class=class_name,par0=val0,...
+                          if given, generate values of parameters using the
+                          specified function; the generated parameters must be
+                          set to @generate in the parametric study
+                          configuration,
     -c key1+key2+..., ..., --contract key1+key2+..., ...
                           list of option keys that should be contracted to vary
                           in lockstep
@@ -560,3 +567,75 @@ Notes
   function can be in different modules.
 - The script that is being parameterized need not be a Python module - any
   executable which can be run from a command line can be used.
+
+Special Argument Values
+'''''''''''''''''''''''
+
+- ``'@defined'`` denotes that a value-less argument is present.
+- ``'@undefined'`` denotes that a value-less argument is not present.
+- ``'@generate'`` denotes an argument whose values are generated, in connection
+  with ``--generate-pars`` option, see below.
+
+Generated Arguments
+'''''''''''''''''''
+
+Argument sequences can be generated using a function with the help of
+``--generate-pars`` option. For example, the same results as above can be
+achieved by defining a function that generates ``--switch`` and ``--seed``
+arguments values:
+
+.. code:: python
+
+   def generate_seed_switch(args, gkeys, dconf, options):
+       """
+       Parameters
+       ----------
+       args : Struct
+           The arguments passed from the command line.
+       gkeys : list
+           The list of option keys to generate.
+       dconf : dict
+           The parsed parameters of the parametric study.
+       options : Namespace
+           The soops-run command line options.
+       """
+       seeds, switches = zip(*product(args.seeds, args.switches))
+       gconf = {'--seed' : list(seeds), '--switch' : list(switches)}
+       return gconf
+
+and then calling `soops-run` as follows::
+
+  soops-run -r 1 -n 3 -c='--switch + --seed' -o output/study2 "python='python3', output_dir='output/study2/%s', --num=[100,1000,10000], --repeat=[10,20], --switch=@generate, --seed=@generate, --host=['random', 'first'], --silent=@defined, --no-show=@defined" --generate-pars="function=generate_seed_switch, seeds=['@undefined', 12345], switches=['@undefined', '@defined']" examples/monty_hall.py
+
+Notice the special ``@generate`` values of ``--switch`` and ``--seed``, and the
+use of ``--generate-pars``: all key-value pairs, except the function name, are
+passed into :func:``generate_seed_switch()`` in the ``args`` dict-like
+argument.
+
+The combined results can again be plotted using::
+
+  soops-scoop examples/monty_hall.py output/study2/0* -s rdir -o output/study2/
+
+Computed Arguments
+''''''''''''''''''
+
+By using ``--compute-pars`` option it is possible to define arguments depending
+on other arguments values in a more general way than with ``--contract``.
+A callable class needs to be provided with the following structure:
+
+.. code:: python
+
+   class ComputePars:
+
+       def __init__(self, args, par_seqs, key_order, options):
+           """
+           Called prior to the parametric study to pre-compute reusable data.
+           """
+           pass
+
+       def __call__(self, all_pars):
+           """
+           Called for each parameter set of the study.
+           """
+           out = {}
+           return out
