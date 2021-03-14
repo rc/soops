@@ -60,6 +60,22 @@ def run_with_psutil(cmd, options):
 
     return out
 
+def get_contracts(contract_seqs, par_seqs, key_order):
+    if contract_seqs is not None:
+        contracts = [[key_order.index(key) for key in contract]
+                     for contract in contract_seqs]
+        for ic, contract in enumerate(contracts):
+            sizes = {len(par_seqs[ii]) for ii in contract}
+            if len(sizes) != 1:
+                raise ValueError('contracted parameter sequences {} have {}'
+                                 ' different lengths!'
+                                 .format(contract_seqs[ic], len(sizes)))
+
+    else:
+        contracts = None
+
+    return contracts
+
 def _get_iset(path):
     iset = int(op.basename(path).split('-')[0])
     return iset
@@ -225,18 +241,7 @@ def run_parametric(options):
     par_seqs = [make_key_list(key, dconf.get(key, '@undefined'))
                 for key in key_order]
 
-    if options.contract is not None:
-        contracts = [[key_order.index(key) for key in contract]
-                     for contract in options.contract]
-        for ic, contract in enumerate(contracts):
-            sizes = {len(par_seqs[ii]) for ii in contract}
-            if len(sizes) != 1:
-                raise ValueError('contracted parameter sequences {} have {}'
-                                 ' different lengths!'
-                                 .format(options.contract[ic], len(sizes)))
-
-    else:
-        contracts = None
+    contracts = get_contracts(options.contract, par_seqs, key_order)
 
     if options.compute_pars is not None:
         compute_pars = ComputePars(dcompute_pars, par_seqs, key_order, options)
