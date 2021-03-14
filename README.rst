@@ -573,6 +573,11 @@ Special Argument Values
 
 - ``'@defined'`` denotes that a value-less argument is present.
 - ``'@undefined'`` denotes that a value-less argument is not present.
+- ``'@arange([start,] stop[, step,], dtype=None)'`` denotes values obtained by
+  calling ``numpy.arange()`` with the given arguments.
+- ``'@linspace(start, stop, num=50, endpoint=True, dtype=None, axis=0)'``
+  denotes values obtained by calling ``numpy.linspace()`` with the given
+  arguments.
 - ``'@generate'`` denotes an argument whose values are generated, in connection
   with ``--generate-pars`` option, see below.
 
