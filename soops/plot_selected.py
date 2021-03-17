@@ -15,22 +15,6 @@ def normalize_selected(selected):
 
     return nselected
 
-def get_indices_in_selected(selected, row, compares):
-    _cmp = lambda a, b: a == b
-    indices = {}
-    for key, svals in selected.items():
-        cmp = compares.get(key, _cmp)
-        dval = row[key]
-        for ii, sval in enumerate(svals):
-            if cmp(sval, dval):
-                indices[key] = ii
-                break
-
-        else:
-            return None
-
-    return indices
-
 def setup_plot_styles(selected, raw_styles):
     styles = raw_styles.copy()
     for key, style in raw_styles.items():
@@ -76,6 +60,22 @@ def get_cat_style(selected, key, styles, skey):
 def select_cat_style(cdict, cats):
     return [cdict[cat] for cat in cats]
 
+def get_indices_in_selected(selected, row, compares):
+    _cmp = lambda a, b: a == b
+    indices = {}
+    for key, svals in selected.items():
+        cmp = compares.get(key, _cmp)
+        dval = row[key]
+        for ii, sval in enumerate(svals):
+            if cmp(sval, dval):
+                indices[key] = ii
+                break
+
+        else:
+            return None
+
+    return indices
+
 def get_plot_style(indices, styles):
     style_kwargs = {}
     for key, key_styles in styles.items():
@@ -97,6 +97,28 @@ def get_row_style(row, selected, compares, styles, **plot_kwargs):
     style_kwargs.update(plot_kwargs)
 
     return style_kwargs, indices
+
+def update_used(used, indices):
+    if used is None:
+        used = {}
+
+    for key, indx in indices.items():
+        used.setdefault(key, set()).add(indices[key])
+
+    return used
+
+def get_row_style_used(row, selected, compares, styles, used, **plot_kwargs):
+    """
+    Combines :func:`get_row_style()` and :func:`update_used()` into a single
+    call.
+    """
+    style_kwargs, indices = get_row_style(
+        row, selected, compares, styles, **plot_kwargs
+    )
+    if indices is None:
+        used = update_used(used, indices)
+
+    return style_kwargs, indices, used
 
 def get_legend_items(selected, styles, used=None, format_labels=None):
     if format_labels is None:
@@ -134,15 +156,6 @@ def get_legend_items(selected, styles, used=None, format_labels=None):
 
     return lines, labels
 
-def update_used(used, indices):
-    if used is None:
-        used = {}
-
-    for key, indx in indices.items():
-        used.setdefault(key, set()).add(indices[key])
-
-    return used
-
 def add_legend(ax, selected, styles, used, format_labels=None,
                loc='best', fontsize=None, frame_alpha=0.5):
     lines, labels = get_legend_items(selected, styles, used=used,
@@ -159,12 +172,10 @@ def plot_selected(ax, df, column, selected, compares, styles,
 
     used = None
     for ir in range(len(df)):
-        style_kwargs, indices = get_row_style(
-            df.iloc[ir], selected, compares, styles, **plot_kwargs
+        style_kwargs, indices, used = get_row_style_used(
+            df.iloc[ir], selected, compares, styles, used, **plot_kwargs
         )
-        if indices is None: continue
-        used = update_used(used, indices)
-
+        if style_kwargs is None: continue
         ax.plot(df.loc[ir, column], **style_kwargs)
 
     add_legend(ax, selected, styles, used, format_labels=format_labels)
