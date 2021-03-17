@@ -15,22 +15,6 @@ def normalize_selected(selected):
 
     return nselected
 
-def get_indices_in_selected(selected, row, compares):
-    _cmp = lambda a, b: a == b
-    indices = {}
-    for key, svals in selected.items():
-        cmp = compares.get(key, _cmp)
-        dval = row[key]
-        for ii, sval in enumerate(svals):
-            if cmp(sval, dval):
-                indices[key] = ii
-                break
-
-        else:
-            return None
-
-    return indices
-
 def setup_plot_styles(selected, raw_styles):
     styles = raw_styles.copy()
     for key, style in raw_styles.items():
@@ -75,6 +59,22 @@ def get_cat_style(selected, key, styles, skey):
 
 def select_cat_style(cdict, cats):
     return [cdict[cat] for cat in cats]
+
+def get_indices_in_selected(selected, row, compares):
+    _cmp = lambda a, b: a == b
+    indices = {}
+    for key, svals in selected.items():
+        cmp = compares.get(key, _cmp)
+        dval = row[key]
+        for ii, sval in enumerate(svals):
+            if cmp(sval, dval):
+                indices[key] = ii
+                break
+
+        else:
+            return None
+
+    return indices
 
 def get_plot_style(indices, styles):
     style_kwargs = {}
