@@ -98,6 +98,15 @@ def get_row_style(row, selected, compares, styles, **plot_kwargs):
 
     return style_kwargs, indices
 
+def update_used(used, indices):
+    if used is None:
+        used = {}
+
+    for key, indx in indices.items():
+        used.setdefault(key, set()).add(indices[key])
+
+    return used
+
 def get_legend_items(selected, styles, used=None, format_labels=None):
     if format_labels is None:
         format_labels = lambda key, iv, val: '{}: {}'.format(key, val)
@@ -133,15 +142,6 @@ def get_legend_items(selected, styles, used=None, format_labels=None):
             labels.append(format_labels(key, iv, val))
 
     return lines, labels
-
-def update_used(used, indices):
-    if used is None:
-        used = {}
-
-    for key, indx in indices.items():
-        used.setdefault(key, set()).add(indices[key])
-
-    return used
 
 def add_legend(ax, selected, styles, used, format_labels=None,
                loc='best', fontsize=None, frame_alpha=0.5):
