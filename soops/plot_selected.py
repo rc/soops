@@ -107,6 +107,19 @@ def update_used(used, indices):
 
     return used
 
+def get_row_style_used(row, selected, compares, styles, used, **plot_kwargs):
+    """
+    Combines :func:`get_row_style()` and :func:`update_used()` into a single
+    call.
+    """
+    style_kwargs, indices = get_row_style(
+        row, selected, compares, styles, **plot_kwargs
+    )
+    if indices is None:
+        used = update_used(used, indices)
+
+    return style_kwargs, indices, used
+
 def get_legend_items(selected, styles, used=None, format_labels=None):
     if format_labels is None:
         format_labels = lambda key, iv, val: '{}: {}'.format(key, val)
@@ -159,12 +172,10 @@ def plot_selected(ax, df, column, selected, compares, styles,
 
     used = None
     for ir in range(len(df)):
-        style_kwargs, indices = get_row_style(
-            df.iloc[ir], selected, compares, styles, **plot_kwargs
+        style_kwargs, indices, used = get_row_style_used(
+            df.iloc[ir], selected, compares, styles, used, **plot_kwargs
         )
-        if indices is None: continue
-        used = update_used(used, indices)
-
+        if style_kwargs is None: continue
         ax.plot(df.loc[ir, column], **style_kwargs)
 
     add_legend(ax, selected, styles, used, format_labels=format_labels)
