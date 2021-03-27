@@ -317,9 +317,8 @@ def run_parametric(options):
         all_pars['script_dir'] = op.normpath(op.dirname(options.run_mod))
 
         recompute = options.recompute
-        if ((not options.dry_run) and
-            ((recompute > 1) or
-             (recompute and not is_finished(all_pars, options)))):
+        if ((recompute > 1) or
+            (recompute and not is_finished(all_pars, options))):
 
             sdf = pd.DataFrame({'finished' : False, **all_pars}, index=[pkey])
             sdf.to_csv(op.join(podir, 'soops-parameters.csv'),
@@ -336,7 +335,10 @@ def run_parametric(options):
             output('submitting at', get_timestamp(dtime=dtime))
             output(cmd)
 
-            if options.run_function == 'subprocess.run':
+            if options.dry_run:
+                call = client.submit(lambda: None)
+
+            elif options.run_function == 'subprocess.run':
                 call = client.submit(subprocess.run, cmd,
                                      shell=True, pure=False)
 
