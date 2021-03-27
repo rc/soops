@@ -220,8 +220,7 @@ def product(*seqs, contracts=None):
         yield from itertools.product(*seqs)
         return
 
-    if contracts is not None:
-        ifollowing = [[ii for ii in contract[1:]] for contract in contracts]
+    ifollowing = [[ii for ii in contract[1:]] for contract in contracts]
 
     aux = set(sum(ifollowing, []))
     pindices, pseqs = zip(*itertools.filterfalse(
