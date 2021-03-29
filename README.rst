@@ -646,3 +646,8 @@ A callable class needs to be provided with the following structure:
            """
            out = {}
            return out
+
+See Also
+--------
+
+- `automan <https://github.com/pypr/automan>`_
