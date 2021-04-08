@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+"""
+Find parametric studies with parameters satisfying a given query.
+
+Option-like parameters are transformed to valid Python attribute names removing
+initial dashes and replacing other dashes by underscores. For example
+'--output-dir' becomes 'output_dir'.
+"""
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
+import sys
+import os.path as op
+
+import pandas as pd
+
+from soops.base import output
+from soops.ioutils import locate_files
+
+helps = {
+    'query'
+    : 'pandas query expression applied to collected parameters',
+    'shell'
+    : 'run ipython shell after all computations',
+    'directories'
+    : """one or more root directories with sub-directories containing
+         parametric study results""",
+}
+
+def parse_args(args=None):
+    parser = ArgumentParser(description=__doc__,
+                            formatter_class=RawDescriptionHelpFormatter)
+    parser.add_argument('-q', '--query', metavar='pandas-query-expression',
+                        action='store', dest='query',
+                        default=None, help=helps['query'])
+    parser.add_argument('--shell',
+                        action='store_true', dest='shell',
+                        default=False, help=helps['shell'])
+    parser.add_argument('directories', nargs='+', help=helps['directories'])
+    options = parser.parse_args(args=args)
+
+    return options
+
+def find_studies(options):
+    output.prefix = 'find:'
+
+    dfs = []
+    for root_dir in options.directories:
+        for fname in locate_files('soops-parameters.csv', root_dir=root_dir):
+            if op.exists(fname):
+                try:
+                    df = pd.read_csv(fname, index_col='pkey')
+
+                except pd.errors.EmptyDataError:
+                    continue
+
+                else:
+                    dfs.append(df)
+
+    if len(dfs):
+        apdf = pd.concat(dfs)
+        apdf = apdf.rename(columns=lambda x: x.lstrip('-').replace('-', '_'))
+        if options.query is not None:
+            sdf = apdf.query(options.query)
+
+            for ii in range(len(sdf)):
+                row = sdf.iloc[ii]
+                output('result {} in {}:\n{}'.format(ii, row['output_dir'], row))
+
+    if options.shell:
+        from soops.base import shell; shell()
+
+def main():
+    options = parse_args()
+    return find_studies(options)
+
+if __name__ == '__main__':
+    sys.exit(main())
