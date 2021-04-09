@@ -31,6 +31,12 @@ Examples
   soops-run -r 1 -n 3 -c='--switch + --seed' -o output/study2 "python='python3', output_dir='output/study2/%s', --num=[100,1000,10000], --repeat=[10,20], --switch=@generate, --seed=@generate, --host=['random', 'first'], --silent=@defined, --no-show=@defined" --generate-pars="function=generate_seed_switch, seeds=['@undefined', 12345], switches=['@undefined', '@defined']" examples/monty_hall.py
 
   soops-scoop examples/monty_hall.py output/study2/0* -s rdir -o output/study2
+
+- Explore the studies parameters::
+
+  soops-find output/study
+
+  soops-find output/study -q "num==1000 & repeat==20 & seed==12345"
 """
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import os

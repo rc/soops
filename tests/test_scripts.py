@@ -7,6 +7,8 @@ cmd_scoop = r"""{soops_dir}/examples/monty_hall.py {output_dir}/study/ -s rdir -
 
 cmd_info = r"""{soops_dir}/examples/monty_hall.py -e {output_dir}/study/000-5adf4124d4e3e519e6eb49f2f0992ee1"""
 
+cmd_find = r"""--query=num==1000&repeat==20&seed==12345 {output_dir}/study"""
+
 @pytest.fixture(scope='session')
 def soops_dir():
     return os.path.normpath(os.path.join(os.path.dirname(__file__), '../'))
@@ -50,3 +52,14 @@ def test_print_info(soops_dir, output_dir):
                             .format(soops_dir=soops_dir,
                                     output_dir=output_dir).split())
     pi.print_info(options)
+
+def test_find_studies(soops_dir, output_dir):
+    import soops.find_studies as fs
+
+    print(soops_dir)
+    print(output_dir)
+    options = fs.parse_args(args=cmd_find
+                            .format(soops_dir=soops_dir,
+                                    output_dir=output_dir).split())
+    apdf = fs.find_studies(options)
+    assert len(apdf) == 4
