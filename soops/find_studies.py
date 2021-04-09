@@ -72,9 +72,12 @@ def find_studies(options):
         output('column names:\n{}'.format(apdf.keys()))
         from soops.base import shell; shell()
 
+    return apdf
+
 def main():
     options = parse_args()
-    return find_studies(options)
+    find_studies(options)
+    return
 
 if __name__ == '__main__':
     sys.exit(main())
