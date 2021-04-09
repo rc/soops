@@ -647,6 +647,53 @@ A callable class needs to be provided with the following structure:
            out = {}
            return out
 
+Find Runs with Given Parameters
+'''''''''''''''''''''''''''''''
+
+For very large parametric studies, it might be impractical to view
+`all_parameters.csv` directly when searching a directory of a run with given
+parameters. The `soops-find` script can be used instead::
+
+  $ soops-find -h
+  usage: soops-find [-h] [-q pandas-query-expression] [--shell]
+                    directories [directories ...]
+
+  Find parametric studies with parameters satisfying a given query.
+
+  Option-like parameters are transformed to valid Python attribute names removing
+  initial dashes and replacing other dashes by underscores. For example
+  '--output-dir' becomes 'output_dir'.
+
+  positional arguments:
+    directories           one or more root directories with sub-directories
+                          containing parametric study results
+
+  optional arguments:
+    -h, --help            show this help message and exit
+    -q pandas-query-expression, --query pandas-query-expression
+                          pandas query expression applied to collected
+                          parameters
+    --shell               run ipython shell after all computations
+
+Without options, it loads all parameter sets found in given directories into
+a DataFrame and launches the ipython shell::
+
+  $ soops-find output/study
+  find: 48 parameter sets stored in `apdf` DataFrame
+  find: column names:
+  Index(['finished', 'host', 'no_show', 'num', 'plot_opts', 'repeat', 'seed',
+         'silent', 'switch', 'python', 'output_dir', 'script_dir'],
+        dtype='object')
+  Python 3.8.5 (default, Sep  4 2020, 07:30:14)
+  Type 'copyright', 'credits' or 'license' for more information
+  IPython 7.21.0 -- An enhanced Interactive Python. Type '?' for help.
+
+  In [1]:
+
+The ``--query`` option can be used to limit the search, for example::
+
+  $ soops-find output/study -q "num==1000 & repeat==20 & seed==12345"
+
 See Also
 --------
 
