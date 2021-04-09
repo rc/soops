@@ -58,6 +58,8 @@ def find_studies(options):
     if len(dfs):
         apdf = pd.concat(dfs)
         apdf = apdf.rename(columns=lambda x: x.lstrip('-').replace('-', '_'))
+        apdf = apdf.sort_values('output_dir', ignore_index=True)
+
         if options.query is not None:
             sdf = apdf.query(options.query)
 
@@ -65,7 +67,9 @@ def find_studies(options):
                 row = sdf.iloc[ii]
                 output('result {} in {}:\n{}'.format(ii, row['output_dir'], row))
 
-    if options.shell:
+    if options.shell or (options.query is None):
+        output('{} parameter sets stored in `apdf` DataFrame'.format(len(apdf)))
+        output('column names:\n{}'.format(apdf.keys()))
         from soops.base import shell; shell()
 
 def main():
