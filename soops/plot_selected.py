@@ -115,7 +115,7 @@ def get_row_style_used(row, selected, compares, styles, used, **plot_kwargs):
     style_kwargs, indices = get_row_style(
         row, selected, compares, styles, **plot_kwargs
     )
-    if indices is None:
+    if indices is not None:
         used = update_used(used, indices)
 
     return style_kwargs, indices, used
