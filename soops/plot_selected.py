@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -163,11 +165,29 @@ def get_legend_items(selected, styles, used=None, format_labels=None):
     return lines, labels
 
 def add_legend(ax, selected, styles, used, format_labels=None,
-               loc='best', fontsize=None, frame_alpha=0.5):
+               per_parameter=False, loc='best', fontsize=None, frame_alpha=0.5,
+               **kwargs):
+
     lines, labels = get_legend_items(selected, styles, used=used,
                                      format_labels=format_labels)
+    if per_parameter:
+        if not isinstance(loc, list):
+            ploc = [loc] * len(plines)
 
-    leg = ax.legend(lines, labels, loc=loc, fontsize=fontsize)
+        legs = []
+        for plines, plabels, ploc in zip(lines, labels, loc):
+            leg = ax.legend(plines, plabels, loc=ploc, fontsize=fontsize,
+                            **kwargs)
+            legs.append(leg)
+
+        for leg in legs[:-1]:
+            ax.add_artist(leg)
+
+    else:
+        lines = itertools.chain(*lines)
+        labels = itertools.chain(*labels)
+        leg = ax.legend(lines, labels, loc=loc, fontsize=fontsize, **kwargs)
+
     if leg is not None:
         leg.get_frame().set_alpha(frame_alpha)
 
