@@ -130,6 +130,8 @@ def get_legend_items(selected, styles, used=None, format_labels=None):
         key_styles = styles[key]
         if not len(key_styles): continue
 
+        plines = []
+        plabels = []
         for iv, val in enumerate(svals):
             if (used is not None) and (iv not in used[key]): continue
 
@@ -152,8 +154,11 @@ def get_legend_items(selected, styles, used=None, format_labels=None):
                 (line.get_marker() == 'None')):
                 line.set_linestyle('-')
 
-            lines.append(line)
-            labels.append(format_labels(key, iv, val))
+            plines.append(line)
+            plabels.append(format_labels(key, iv, val))
+
+        lines.append(plines)
+        labels.append(plabels)
 
     return lines, labels
 
