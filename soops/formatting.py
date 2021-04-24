@@ -16,11 +16,16 @@ def format_float_latex(val, prec):
         return '0'
 
     elif isfinite(val):
-        fmt = '{{:.{}e}}'.format(prec)
-        sval = fmt.format(val)
-        iexp = list(map(float, sval.split('e')))
-        iexp[1] = int(iexp[1])
-        return r'${} \cdot 10^{{{}}}$'.format(*iexp)
+        if isinstance(prec, int):
+            fmt = '{{:.{}e}}'.format(prec)
+            sval = fmt.format(val)
+            iexp = list(map(float, sval.split('e')))
+            iexp[1] = int(iexp[1])
+            return r'${} \cdot 10^{{{}}}$'.format(*iexp)
+
+        else:
+            aux = r'{{:{}}}'.format(prec).format(val).replace(' ', '\enspace ')
+            return r'${}$'.format(aux)
 
     else:
         return str(val)
