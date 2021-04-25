@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from soops.base import output
+from soops.parsing import parse_as_dict
 
 def select_by_keys(df, keys):
     selected = {key : sorted(df[key].unique()) for key in keys}
@@ -26,23 +27,21 @@ def setup_plot_styles(selected, raw_styles):
         for skey, svals in style.items():
             if skey == 'color' and isinstance(svals, str):
                 cmap_name, *modifiers = svals.split(':')
-                modifier = modifiers[0] if len(modifiers) else ''
-
+                mods = parse_as_dict(modifiers[0]) if len(modifiers) else {}
                 cmap = getattr(plt.cm, cmap_name)
 
                 ncolors = max(len(selected[key]), 2)
-                if hasattr(cmap, 'colors'):
+                if (hasattr(cmap, 'colors') and
+                    (mods.get('kind') == 'qualitative')):
                     acc = np.asarray(cmap.colors)
-                    if modifier == 'qualitative':
-                        cc = acc[:ncolors]
-
-                    else:
-                        icc = np.linspace(0, len(acc) - 1,
-                                      ncolors).astype(int)
-                        cc = acc[icc]
+                    i0 = mods.get('min', 0)
+                    i1 = mods.get('max', ncolors)
+                    cc = acc[i0:i1]
 
                 else:
-                    cc = cmap(np.linspace(0.0, 1.0, ncolors))
+                    t0 = mods.get('min', 0.0)
+                    t1 = mods.get('max', 1.0)
+                    cc = cmap(np.linspace(t0, t1, ncolors))
 
                 styles[key][skey] = cc
 
