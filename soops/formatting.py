@@ -3,7 +3,12 @@ from math import isfinite
 from soops.base import output, run_command
 
 def format_float(val, prec, replace_dot=True):
-    fmt = '{{:.{}e}}'.format(prec)
+    if isinstance(prec, int):
+        fmt = '{{:.{}e}}'.format(prec)
+
+    else:
+        fmt = '{{:{}}}'.format(prec)
+
     aux = fmt.format(val)
     if replace_dot:
         return aux.replace('.', ':') # Make LaTeX happy.
