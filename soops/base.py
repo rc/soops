@@ -288,18 +288,24 @@ def python_shell(frame=0):
     frame = sys._getframe(frame+1)
     code.interact(local=frame.f_locals)
 
-def ipython_shell(frame=0):
+def ipython_shell(frame=0, magics=None):
     from IPython.terminal.embed import InteractiveShellEmbed
     ipshell = InteractiveShellEmbed()
+    if magics is not None:
+        for magic in magics:
+            if isinstance(magic, str):
+                magic = (magic, '')
+
+            ipshell.run_line_magic(*magic)
 
     ipshell(stack_depth=frame+1)
 
-def shell(frame=0):
+def shell(frame=0, magics=('matplotlib',)):
     """
     Embed an IPython (if available) or regular Python shell in the given frame.
     """
     try:
-        ipython_shell(frame=frame+2)
+        ipython_shell(frame=frame+2, magics=magics)
 
     except ImportError:
         python_shell(frame=frame+1)
