@@ -392,15 +392,20 @@ def debug_on_error():
 
     sys.excepthook = except_hook
 
-def run_command(command, filename, repeat=1, silent=False):
+def run_command(command, filename=None, repeat=1, silent=False):
     """
     Run `command` with `filename` positional argument in the directory of the
-    `filename`.
+    `filename`. If `filename` is not given, run only the command.
     """
-    fdir = os.path.dirname(os.path.abspath(filename))
-    fname = os.path.basename(filename)
+    if filename is not None:
+        fdir = os.path.dirname(os.path.abspath(filename))
+        fname = os.path.basename(filename)
 
-    cmd = command + ' ' + fname
+        cmd = command + ' ' + fname
+
+    else:
+        fdir = None
+        cmd = command
 
     status = 0
     for ii in range(repeat):
