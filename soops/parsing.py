@@ -150,19 +150,37 @@ def create_dict_bnf(allow_tuple=False, free_word=False):
     else:
         return defs['dict'].inner | empty
 
-def parse_as_dict(string, allow_tuple=False, free_word=False):
+def parse_as_dict(string, allow_tuple=False, free_word=False, defaults=None):
     """
     Parse `string` and return a dictionary.
     """
     if string is None:
         return {}
 
+    if defaults is None:
+        defaults = {}
+
+    elif isinstance(defaults, str):
+        defaults = parse_as_dict(
+            defaults, allow_tuple=allow_tuple, free_word=free_word
+        )
+
+    elif isinstance(defaults, dict):
+        defaults = defaults.copy()
+
+    else:
+        raise ValueError('defaults must be derived from string or dict!')
+
     if isinstance(string, dict):
+        if defaults is not None:
+            defaults.update(string)
+            string = defaults
+
         return string
 
     parser = create_dict_bnf(allow_tuple=allow_tuple, free_word=free_word)
 
-    out = {}
+    out = defaults
     for r in parser.parseString(string, parseAll=True):
         out.update(r)
 
