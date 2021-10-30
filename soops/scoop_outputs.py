@@ -161,7 +161,7 @@ def get_uniques(df, columns):
 
         except TypeError:
             _, ir = np.unique([str(ii) for ii in df[col]], return_index=True)
-            vals = df.loc[ir, col].tolist() # np.unique() sorts.
+            vals = df.loc[df.index[ir], col].tolist() # np.unique() sorts.
 
         uniques[col] = vals
 
