@@ -201,7 +201,7 @@ def plot_selected(ax, df, column, selected, compares, styles,
             df.iloc[ir], selected, compares, styles, used, **plot_kwargs
         )
         if style_kwargs is None: continue
-        ax.plot(df.loc[ir, column], **style_kwargs)
+        ax.plot(df.loc[df.index[ir], column], **style_kwargs)
 
     add_legend(ax, selected, styles, used, format_labels=format_labels)
 
