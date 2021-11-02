@@ -18,6 +18,8 @@ from soops.ioutils import locate_files
 helps = {
     'query'
     : 'pandas query expression applied to collected parameters',
+    'engine'
+    : 'pandas query evaluation engine [default: %(default)s]',
     'shell'
     : 'run ipython shell after all computations',
     'directories'
@@ -31,6 +33,9 @@ def parse_args(args=None):
     parser.add_argument('-q', '--query', metavar='pandas-query-expression',
                         action='store', dest='query',
                         default=None, help=helps['query'])
+    parser.add_argument('--engine', action='store', dest='engine',
+                        choices=['numexpr', 'python'],
+                        default='numexpr', help=helps['engine'])
     parser.add_argument('--shell',
                         action='store_true', dest='shell',
                         default=False, help=helps['shell'])
@@ -61,7 +66,7 @@ def find_studies(options):
         apdf = apdf.sort_values('output_dir', ignore_index=True)
 
         if options.query is not None:
-            sdf = apdf.query(options.query)
+            sdf = apdf.query(options.query, engine=options.engine)
 
             for ii in range(len(sdf)):
                 row = sdf.iloc[ii]

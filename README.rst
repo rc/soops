@@ -655,7 +655,8 @@ For very large parametric studies, it might be impractical to view
 parameters. The `soops-find` script can be used instead::
 
   $ soops-find -h
-  usage: soops-find [-h] [-q pandas-query-expression] [--shell]
+  usage: soops-find [-h] [-q pandas-query-expression]
+                    [--engine {numexpr,python}] [--shell]
                     directories [directories ...]
 
   Find parametric studies with parameters satisfying a given query.
@@ -673,6 +674,8 @@ parameters. The `soops-find` script can be used instead::
     -q pandas-query-expression, --query pandas-query-expression
                           pandas query expression applied to collected
                           parameters
+    --engine {numexpr,python}
+                          pandas query evaluation engine [default: numexpr]
     --shell               run ipython shell after all computations
 
 Without options, it loads all parameter sets found in given directories into
