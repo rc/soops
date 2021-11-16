@@ -191,7 +191,7 @@ def add_legend(ax, selected, styles, used, format_labels=None,
         leg.get_frame().set_alpha(frame_alpha)
 
 def plot_selected(ax, df, column, selected, compares, styles,
-                  format_labels=None, **plot_kwargs):
+                  format_labels=None, xaxis=None, **plot_kwargs):
     if ax is None:
         _, ax = plt.subplots()
 
@@ -201,7 +201,12 @@ def plot_selected(ax, df, column, selected, compares, styles,
             df.iloc[ir], selected, compares, styles, used, **plot_kwargs
         )
         if style_kwargs is None: continue
-        ax.plot(df.loc[df.index[ir], column], **style_kwargs)
+        if xaxis is None:
+            ax.plot(df.loc[df.index[ir], column], **style_kwargs)
+
+        else:
+            ax.plot(df.loc[df.index[ir], xaxis],
+                    df.loc[df.index[ir], column], **style_kwargs)
 
     add_legend(ax, selected, styles, used, format_labels=format_labels)
 
