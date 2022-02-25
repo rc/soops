@@ -139,7 +139,9 @@ def get_legend_items(selected, styles, used=None, format_labels=None):
             kw = {}
             for skey, style_vals in key_styles.items():
                 kw[skey] = style_vals[iv % len(style_vals)]
-                if ((skey in ('fillstyle', 'markersize')) and
+                if ((skey in ('fillstyle', 'markersize', 'markeredgecolor',
+                              'markeredgewidth', 'markerfacecolor',
+                              'markerfacecoloralt', 'markevery')) and
                     ('marker' not in key_styles)):
                     kw['marker'] = 'o'
 
