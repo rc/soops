@@ -9,28 +9,28 @@ Examples
 
 - Direct runs::
 
-  python examples/monty_hall.py -h
-  python examples/monty_hall.py output
-  python examples/monty_hall.py --switch output
-  python examples/monty_hall.py --num=10000 output
+  python soops/examples/monty_hall.py -h
+  python soops/examples/monty_hall.py output
+  python soops/examples/monty_hall.py --switch output
+  python soops/examples/monty_hall.py --num=10000 output
 
 - A parametric study::
 
-  soops-run -r 1 -n 3 -c='--switch + --seed' -o output "python='python3', output_dir='output/study/%s', --num=[100,1000,10000], --repeat=[10,20], --switch=['@undefined', '@defined', '@undefined', '@defined'], --seed=['@undefined', '@undefined', 12345, 12345], --host=['random', 'first'], --silent=@defined, --no-show=@defined" examples/monty_hall.py
+  soops-run -r 1 -n 3 -c='--switch + --seed' -o output "python='python3', output_dir='output/study/%s', --num=[100,1000,10000], --repeat=[10,20], --switch=['@undefined', '@defined', '@undefined', '@defined'], --seed=['@undefined', '@undefined', 12345, 12345], --host=['random', 'first'], --silent=@defined, --no-show=@defined" soops/examples/monty_hall.py
 
-  soops-info examples/monty_hall.py -e output/study/00*
+  soops-info soops/examples/monty_hall.py -e output/study/00*
 
-  soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study
+  soops-scoop soops/examples/monty_hall.py output/study/ -s rdir -o output/study
 
-  soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r --plugin-args=plot_win_rates={colormap_name='plasma'}
+  soops-scoop soops/examples/monty_hall.py output/study/ -s rdir -o output/study -r --plugin-args=plot_win_rates={colormap_name='plasma'}
 
-  soops-scoop examples/monty_hall.py output/study/ -o output/study -r --no-plugins --shell
+  soops-scoop soops/examples/monty_hall.py output/study/ -o output/study -r --no-plugins --shell
 
 - Use --generate-pars instead of listing values of --seed and --switch::
 
-  soops-run -r 1 -n 3 -c='--switch + --seed' -o output/study2 "python='python3', output_dir='output/study2/%s', --num=[100,1000,10000], --repeat=[10,20], --switch=@generate, --seed=@generate, --host=['random', 'first'], --silent=@defined, --no-show=@defined" --generate-pars="function=generate_seed_switch, seeds=['@undefined', 12345], switches=['@undefined', '@defined']" examples/monty_hall.py
+  soops-run -r 1 -n 3 -c='--switch + --seed' -o output/study2 "python='python3', output_dir='output/study2/%s', --num=[100,1000,10000], --repeat=[10,20], --switch=@generate, --seed=@generate, --host=['random', 'first'], --silent=@defined, --no-show=@defined" --generate-pars="function=generate_seed_switch, seeds=['@undefined', 12345], switches=['@undefined', '@defined']" soops/examples/monty_hall.py
 
-  soops-scoop examples/monty_hall.py output/study2/0* -s rdir -o output/study2
+  soops-scoop soops/examples/monty_hall.py output/study2/0* -s rdir -o output/study2
 
 - Explore the studies parameters::
 
