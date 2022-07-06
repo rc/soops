@@ -36,9 +36,16 @@ Install `soops` from sources (in the current directory)::
 
   pip install .
 
-Run the tests::
+Run the tests (in any directory)::
 
-  pytest .
+  python -c "import soops; soops.test()"
+
+Run tests in the source directory without installing soops::
+
+  export PYTHONPATH=.
+  python -c "import soops; soops.test()"
+  # or
+  pytest soops/tests
 
 Example
 -------
@@ -64,7 +71,7 @@ have a look at the `complete example script <examples/monty_hall.py>`_.
 
 This is our script and its arguments::
 
-  $ python ./examples/monty_hall.py -h
+  $ python soops/examples/monty_hall.py -h
   usage: monty_hall.py [-h] [--switch] [--host {random,first}] [--num int]
                        [--repeat int] [--seed int] [--plot-opts dict-like] [-n]
                        [--silent]
@@ -100,7 +107,7 @@ Basic Run
 
 A run with the default parameters::
 
-  $ python examples/monty_hall.py output
+  $ python soops/examples/monty_hall.py output
   monty_hall: num: 100
   monty_hall: repeat: 5
   monty_hall: switch: False
@@ -243,7 +250,7 @@ Putting `get_run_info()` into our script allows running a parametric study using
 In our case (the arguments with no value (flags) can be specified either as
 ``'@defined'`` or ``'@undefined'``)::
 
-  soops-run -r 1 -n 3 -c='--switch + --seed' -o output "python='python3', output_dir='output/study/%s', --num=[100,1000,10000], --repeat=[10,20], --switch=['@undefined', '@defined', '@undefined', '@defined'], --seed=['@undefined', '@undefined', 12345, 12345], --host=['random', 'first'], --silent=@defined, --no-show=@defined" examples/monty_hall.py
+  soops-run -r 1 -n 3 -c='--switch + --seed' -o output "python='python3', output_dir='output/study/%s', --num=[100,1000,10000], --repeat=[10,20], --switch=['@undefined', '@defined', '@undefined', '@defined'], --seed=['@undefined', '@undefined', 12345, 12345], --host=['random', 'first'], --silent=@defined, --no-show=@defined" soops/examples/monty_hall.py
 
 This command runs our script using three dask workers (``-n 3`` option) and
 produces a directory for each parameter set::
@@ -294,7 +301,7 @@ Our example script also stores the values of command line arguments in
   command line
   ------------
 
-  "examples/monty_hall.py" "output/study/000-7a6b546a625c2d37569346a286f2b2b6" "--num=100" "--repeat=10" "--host=random" "--no-show" "--silent"
+  "soops/examples/monty_hall.py" "output/study/000-7a6b546a625c2d37569346a286f2b2b6" "--num=100" "--repeat=10" "--host=random" "--no-show" "--silent"
 
   options
   -------
@@ -332,7 +339,7 @@ directories::
 
 ::
 
-  $ soops-info examples/monty_hall.py -e output/study/000-7a6b546a625c2d37569346a286f2b2b6/
+  $ soops-info soops/examples/monty_hall.py -e output/study/000-7a6b546a625c2d37569346a286f2b2b6/
   info: output/study/000-7a6b546a625c2d37569346a286f2b2b6/
   info:      finished: True
   info: *      --host: random
@@ -451,7 +458,7 @@ Then we are ready to run ``soops-scoop``::
 
 as follows::
 
-  $ soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study --no-plugins --shell
+  $ soops-scoop soops/examples/monty_hall.py output/study/ -s rdir -o output/study --no-plugins --shell
 
   <snip>
 
@@ -550,7 +557,7 @@ plugin allows plotting the all results combined:
 
 Then, running::
 
-  soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r
+  soops-scoop soops/examples/monty_hall.py output/study/ -s rdir -o output/study -r
 
 reuses the ``output/study/results.h5`` file and plots the combined results:
 
@@ -560,7 +567,7 @@ reuses the ``output/study/results.h5`` file and plots the combined results:
 It is possible to pass arguments to plugins using ``--plugin-args`` option, as
 follows::
 
-  soops-scoop examples/monty_hall.py output/study/ -s rdir -o output/study -r --plugin-args=plot_win_rates={colormap_name='plasma'}
+  soops-scoop soops/examples/monty_hall.py output/study/ -s rdir -o output/study -r --plugin-args=plot_win_rates={colormap_name='plasma'}
 
 Notes
 '''''
@@ -612,7 +619,7 @@ arguments values:
 
 and then calling `soops-run` as follows::
 
-  soops-run -r 1 -n 3 -c='--switch + --seed' -o output/study2 "python='python3', output_dir='output/study2/%s', --num=[100,1000,10000], --repeat=[10,20], --switch=@generate, --seed=@generate, --host=['random', 'first'], --silent=@defined, --no-show=@defined" --generate-pars="function=generate_seed_switch, seeds=['@undefined', 12345], switches=['@undefined', '@defined']" examples/monty_hall.py
+  soops-run -r 1 -n 3 -c='--switch + --seed' -o output/study2 "python='python3', output_dir='output/study2/%s', --num=[100,1000,10000], --repeat=[10,20], --switch=@generate, --seed=@generate, --host=['random', 'first'], --silent=@defined, --no-show=@defined" --generate-pars="function=generate_seed_switch, seeds=['@undefined', 12345], switches=['@undefined', '@defined']" soops/examples/monty_hall.py
 
 Notice the special ``@generate`` values of ``--switch`` and ``--seed``, and the
 use of ``--generate-pars``: all key-value pairs, except the function name, are
@@ -621,7 +628,7 @@ argument.
 
 The combined results can again be plotted using::
 
-  soops-scoop examples/monty_hall.py output/study2/0* -s rdir -o output/study2/
+  soops-scoop soops/examples/monty_hall.py output/study2/0* -s rdir -o output/study2/
 
 Computed Arguments
 ''''''''''''''''''
