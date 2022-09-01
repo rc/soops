@@ -340,8 +340,7 @@ def debug(frame=None, frames_back=1):
                 ip = get_ipython()
 
             except NameError:
-                from IPython.frontend.terminal.embed \
-                     import InteractiveShellEmbed
+                from IPython.terminal.embed import InteractiveShellEmbed
                 ip = InteractiveShellEmbed()
 
             colors = ip.colors
