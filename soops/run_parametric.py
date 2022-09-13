@@ -184,6 +184,10 @@ def run_parametric(options):
         (run_cmd, opt_args, output_dir_key,
          _is_finished) = run_mod.get_run_info()
 
+        if isinstance(opt_args, list):
+            # '--option={--option}' -> '--option' : '--option={--option}'
+            opt_args = {item.split('=')[0] : item for item in opt_args}
+
     else:
         output('no get_run_info() in {}, exiting'.format(options.run_mod))
         return
