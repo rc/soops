@@ -88,14 +88,6 @@ helps = {
      """recomputation strategy: 0: do not recompute,
         1: recompute only if is_finished() returns False,
         2: always recompute [default:  %(default)s]""",
-    'generate_pars' :
-    """if given, generate values of parameters using the specified function;
-       the generated parameters must be set to @generate in
-       the parametric study configuration,""",
-    'contract' :
-    'list of option keys that should be contracted to vary in lockstep',
-    'compute_pars' :
-    'if given, compute additional parameters using the specified class',
     'n_workers' :
     'the number of dask workers [default: %(default)s]',
     'run_function' :
@@ -103,6 +95,15 @@ helps = {
     'timeout' :
     """if given, the timeout in seconds; requires setting
        --run-function=psutil.Popen""",
+    'generate_pars' :
+    """if given, generate values of parameters using the specified function;
+       the generated parameters must be set to @generate in
+       the parametric study configuration. Alternatively, a section key in
+       a study configuration file.""",
+    'contract' :
+    'list of option keys that should be contracted to vary in lockstep',
+    'compute_pars' :
+    'if given, compute additional parameters using the specified class',
     'silent' :
     'do not print messages to screen',
     'shell' :
@@ -124,6 +125,15 @@ def parse_args(args=None):
     parser.add_argument('-r', '--recompute', action='store', type=int,
                         dest='recompute', choices=[0, 1, 2],
                         default=1, help=helps['recompute'])
+    parser.add_argument('-n', '--n-workers', type=int, metavar='int',
+                        action='store', dest='n_workers',
+                        default=2, help=helps['n_workers'])
+    parser.add_argument('--run-function', action='store', dest='run_function',
+                        choices=['subprocess.run', 'psutil.Popen', 'os.system'],
+                        default='subprocess.run', help=helps['run_function'])
+    parser.add_argument('-t', '--timeout', type=float, metavar='float',
+                        action='store', dest='timeout',
+                        default=None, help=helps['timeout'])
     parser.add_argument('--generate-pars',
                         metavar='dict-like: class=class_name,par0=val0,...',
                         action='store', dest='generate_pars',
@@ -135,15 +145,6 @@ def parse_args(args=None):
                         metavar='dict-like: class=class_name,par0=val0,...',
                         action='store', dest='compute_pars',
                         default=None, help=helps['compute_pars'])
-    parser.add_argument('-n', '--n-workers', type=int, metavar='int',
-                        action='store', dest='n_workers',
-                        default=2, help=helps['n_workers'])
-    parser.add_argument('--run-function', action='store', dest='run_function',
-                        choices=['subprocess.run', 'psutil.Popen', 'os.system'],
-                        default='subprocess.run', help=helps['run_function'])
-    parser.add_argument('-t', '--timeout', type=float, metavar='float',
-                        action='store', dest='timeout',
-                        default=None, help=helps['timeout'])
     parser.add_argument('--silent',
                         action='store_false', dest='verbose',
                         default=True, help=helps['silent'])
