@@ -110,6 +110,8 @@ helps = {
     'list of option keys that should be contracted to vary in lockstep',
     'compute_pars' :
     'if given, compute additional parameters using the specified class',
+    'study' :
+    'study key when parameter sets are given by a study configuration file',
     'silent' :
     'do not print messages to screen',
     'shell' :
@@ -117,7 +119,8 @@ helps = {
     'output_dir' :
     'output directory [default: %(default)s]',
     'conf' :
-    'a dict-like parametric study configuration',
+    """a dict-like parametric study configuration or a study configuration
+       file name""",
     'run_mod' :
     'the importable script/module with get_run_info()',
 }
@@ -141,7 +144,8 @@ def parse_args(args=None):
                         action='store', dest='timeout',
                         default=None, help=helps['timeout'])
     parser.add_argument('--generate-pars',
-                        metavar='dict-like: class=class_name,par0=val0,...',
+                        metavar=('dict-like: function=function_name,'
+                                 'par0=val0,... or str'),
                         action='store', dest='generate_pars',
                         default=None, help=helps['generate_pars'])
     parser.add_argument('-c', '--contract', metavar='key1+key2+..., ...',
@@ -151,6 +155,9 @@ def parse_args(args=None):
                         metavar='dict-like: class=class_name,par0=val0,...',
                         action='store', dest='compute_pars',
                         default=None, help=helps['compute_pars'])
+    parser.add_argument('-s', '--study', metavar='str',
+                        action='store', dest='study',
+                        default='study', help=helps['study'])
     parser.add_argument('--silent',
                         action='store_false', dest='verbose',
                         default=True, help=helps['silent'])
@@ -165,8 +172,9 @@ def parse_args(args=None):
     options = parser.parse_args(args=args)
 
     if options.generate_pars is not None:
-         options.generate_pars = parse_as_dict(options.generate_pars,
-                                               free_word=True)
+        if ('=' in options.generate_pars) or (':' in options.generate_pars):
+            options.generate_pars = parse_as_dict(options.generate_pars,
+                                                  free_word=True)
 
     if options.contract is not None:
         options.contract = [[ii.strip() for ii in contract.split('+')]
@@ -206,7 +214,28 @@ def run_parametric(options):
     else:
         is_finished = _is_finished
 
-    dconf = parse_as_dict(options.conf, free_word=True)
+    if op.isfile(options.conf):
+        import configparser
+        config = configparser.ConfigParser(interpolation=None)
+
+        config.read(options.conf)
+        skeys = list(config.keys())
+        skeys.pop(skeys.index('DEFAULT'))
+
+        if options.study is None:
+            skey = skeys[0]
+
+        else:
+            if options.study not in skeys:
+                raise ValueError('no {} key in study configuration file {}!'
+                                 .format(options.study, options.conf))
+
+            skey = options.study
+
+        dconf = _get_dict_from_cfg(config, skey)
+
+    else:
+        dconf = parse_as_dict(options.conf, free_word=True)
 
     seq_keys = [key for key, val in dconf.items()
                 if isinstance(val, str) and
@@ -216,7 +245,14 @@ def run_parametric(options):
         dconf[key] = list(eval(sfun, {'np' : np}, {}))
 
     if options.generate_pars is not None:
-        dgenerate_pars = options.generate_pars.copy()
+        if op.isfile(options.conf) and (isinstance(options.generate_pars, str)):
+            if options.generate_pars not in skeys:
+                raise ValueError('no {} key in study configuration file {}!'
+                                 .format(options.generate_pars, options.conf))
+            dgenerate_pars = _get_dict_from_cfg(config, options.generate_pars)
+
+        else:
+            dgenerate_pars = options.generate_pars.copy()
 
         fun_name = dgenerate_pars.pop('function')
         generate_pars = getattr(run_mod, fun_name)
