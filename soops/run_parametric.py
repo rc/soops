@@ -81,6 +81,12 @@ def _get_iset(path):
     iset = int(op.basename(path).split('-')[0])
     return iset
 
+def _get_dict_from_cfg(config, key):
+    aux = list(config[key].items())
+    conf =  ','.join(['='.join([ii for ii in opt]) for opt in aux])
+    dconf = parse_as_dict(conf, free_word=True)
+    return dconf
+
 helps = {
     'dry_run':
     'perform a trial run with no commands executed',
