@@ -67,7 +67,7 @@ problem <https://en.wikipedia.org/wiki/Monty_Hall_problem>`_ in Python.
 For the first reading of the example below, it is advisable not to delve in
 details of the script outputs and code listings and just read the text to get
 an overall idea. After understanding the idea, return to the details, or just
-have a look at the `complete example script <examples/monty_hall.py>`_.
+have a look at the `complete example script <soops/examples/monty_hall.py>`_.
 
 This is our script and its arguments::
 
@@ -77,7 +77,7 @@ This is our script and its arguments::
                        [--silent]
                        output_dir
 
-  The Monty Hall problem simulator parameterizable with soops.
+  The Monty Hall problem simulator parameterized with soops.
 
   https://en.wikipedia.org/wiki/Monty_Hall_problem
 
@@ -86,7 +86,7 @@ This is our script and its arguments::
   positional arguments:
     output_dir            output directory
 
-  optional arguments:
+  options:
     -h, --help            show this help message and exit
     --switch              if given, the contestant always switches the door,
                           otherwise never switches
@@ -201,39 +201,29 @@ Putting `get_run_info()` into our script allows running a parametric study using
 `soops-run`::
 
   $ soops-run -h
-  usage: soops-run [-h] [--dry-run] [-r {0,1,2}]
-                   [--generate-pars dict-like: class=class_name,par0=val0,...]
+  usage: soops-run [-h] [--dry-run] [-r {0,1,2}] [-n int]
+                   [--run-function {subprocess.run,psutil.Popen,os.system}]
+                   [-t float]
+                   [--generate-pars dict-like: function=function_name,par0=val0,... or str]
                    [-c key1+key2+..., ...]
                    [--compute-pars dict-like: class=class_name,par0=val0,...]
-                   [-n int]
-                   [--run-function {subprocess.run,psutil.Popen,os.system}]
-                   [-t float] [--silent] [--shell] [-o path]
+                   [-s str] [--silent] [--shell] [-o path]
                    conf run_mod
 
   Run parametric studies.
 
   positional arguments:
-    conf                  a dict-like parametric study configuration
+    conf                  a dict-like parametric study configuration or a study
+                          configuration file name
     run_mod               the importable script/module with get_run_info()
 
-  optional arguments:
+  options:
     -h, --help            show this help message and exit
     --dry-run             perform a trial run with no commands executed
     -r {0,1,2}, --recompute {0,1,2}
                           recomputation strategy: 0: do not recompute, 1:
                           recompute only if is_finished() returns False, 2:
                           always recompute [default: 1]
-    --generate-pars dict-like: class=class_name,par0=val0,...
-                          if given, generate values of parameters using the
-                          specified function; the generated parameters must be
-                          set to @generate in the parametric study
-                          configuration,
-    -c key1+key2+..., ..., --contract key1+key2+..., ...
-                          list of option keys that should be contracted to vary
-                          in lockstep
-    --compute-pars dict-like: class=class_name,par0=val0,...
-                          if given, compute additional parameters using the
-                          specified class
     -n int, --n-workers int
                           the number of dask workers [default: 2]
     --run-function {subprocess.run,psutil.Popen,os.system}
@@ -242,6 +232,20 @@ Putting `get_run_info()` into our script allows running a parametric study using
     -t float, --timeout float
                           if given, the timeout in seconds; requires setting
                           --run-function=psutil.Popen
+    --generate-pars dict-like: function=function_name,par0=val0,... or str
+                          if given, generate values of parameters using the
+                          specified function; the generated parameters must be
+                          set to @generate in the parametric study
+                          configuration. Alternatively, a section key in a study
+                          configuration file.
+    -c key1+key2+..., ..., --contract key1+key2+..., ...
+                          list of option keys that should be contracted to vary
+                          in lockstep
+    --compute-pars dict-like: class=class_name,par0=val0,...
+                          if given, compute additional parameters using the
+                          specified class
+    -s str, --study str   study key when parameter sets are given by a study
+                          configuration file
     --silent              do not print messages to screen
     --shell               run ipython shell after all computations
     -o path, --output-dir path
@@ -315,6 +319,33 @@ Our example script also stores the values of command line arguments in
   show: False
   silent: True
   switch: False
+
+Using Parametric Study Configuration Files
+''''''''''''''''''''''''''''''''''''''''''
+
+Instead of providing the parameter sets on the command line, a study
+configuration file can be used. Then the same parametric study as above
+can be run using::
+
+  soops-run -r 1 -n 3 -c='--switch + --seed' --study=study -o output soops/examples/studies.cfg soops/examples/monty_hall.py
+
+where ``soops/examples/studies.cfg`` contains::
+
+  [study]
+  python='python3'
+  output_dir='output/study/%s'
+  --num=[100,1000,10000]
+  --repeat=[10,20]
+  --switch=['@undefined', '@defined', '@undefined', '@defined']
+  --seed=['@undefined', '@undefined', 12345, 12345]
+  --host=['random', 'first']
+  --silent=@defined
+  --no-show=@defined
+
+Several studies can be stored in a single file, see `soops/examples/studies.cfg
+<soops/examples/studies.cfg>`_. See also the docstring of
+`soops/examples/monty_hall.py <soops/examples/monty_hall.py>`_ for more
+examples.
 
 Show Parameters Used in Each Output Directory
 '''''''''''''''''''''''''''''''''''''''''''''
@@ -424,9 +455,11 @@ Then we are ready to run ``soops-scoop``::
 
   positional arguments:
     scoop_mod             the importable script/module with get_scoop_info()
-    directories           results directories
+    directories           results directories. On "Argument list too long"
+                          system error, enclose the directories matching pattern
+                          in "", it will be expanded using glob.glob().
 
-  optional arguments:
+  options:
     -h, --help            show this help message and exit
     -s column[,column,...], --sort column[,column,...]
                           column keys for sorting of DataFrame rows
@@ -676,7 +709,7 @@ parameters. The `soops-find` script can be used instead::
     directories           one or more root directories with sub-directories
                           containing parametric study results
 
-  optional arguments:
+  options:
     -h, --help            show this help message and exit
     -q pandas-query-expression, --query pandas-query-expression
                           pandas query expression applied to collected
