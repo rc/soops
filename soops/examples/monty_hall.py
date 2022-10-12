@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-The Monty Hall problem simulator parameterizable with soops.
+The Monty Hall problem simulator parameterized with soops.
 
 https://en.wikipedia.org/wiki/Monty_Hall_problem
 
@@ -26,13 +26,23 @@ Examples
 
   soops-scoop soops/examples/monty_hall.py output/study/ -o output/study -r --no-plugins --shell
 
+- The same parametric study as above, but the parameters are given by a study
+  configuration file::
+
+  soops-run -r 1 -n 3 -c='--switch + --seed' --study=study -o output soops/examples/studies.cfg soops/examples/monty_hall.py
+
 - Use --generate-pars instead of listing values of --seed and --switch::
 
-  soops-run -r 1 -n 3 -c='--switch + --seed' -o output/study2 "python='python3', output_dir='output/study2/%s', --num=[100,1000,10000], --repeat=[10,20], --switch=@generate, --seed=@generate, --host=['random', 'first'], --silent=@defined, --no-show=@defined" --generate-pars="function=generate_seed_switch, seeds=['@undefined', 12345], switches=['@undefined', '@defined']" soops/examples/monty_hall.py
+  soops-run -r 1 -n 3 -c='--switch + --seed' -o output/study-g "python='python3', output_dir='output/study-g/%s', --num=[100,1000,10000], --repeat=[10,20], --switch=@generate, --seed=@generate, --host=['random', 'first'], --silent=@defined, --no-show=@defined" --generate-pars="function=generate_seed_switch, seeds=['@undefined', 12345], switches=['@undefined', '@defined']" soops/examples/monty_hall.py
 
-  soops-scoop soops/examples/monty_hall.py output/study2/0* -s rdir -o output/study2
+  soops-scoop soops/examples/monty_hall.py output/study-g/0* -s rdir -o output/study-g
 
-- Explore the studies parameters::
+- The same parametric study as above, but the parameters are given by a study
+  configuration file::
+
+  soops-run -r 1 -n 3 -c='--switch + --seed' --generate-pars=study-g.@generate --study=study-g -o output soops/examples/studies.cfg soops/examples/monty_hall.py
+
+- Explore parameters of a study::
 
   soops-find output/study
 
