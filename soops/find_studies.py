@@ -72,6 +72,9 @@ def find_studies(options):
                 row = sdf.iloc[ii]
                 output('result {} in {}:\n{}'.format(ii, row['output_dir'], row))
 
+    else:
+        apdf = pd.DataFrame()
+
     if options.shell or (options.query is None):
         output('{} parameter sets stored in `apdf` DataFrame'.format(len(apdf)))
         output('column names:\n{}'.format(apdf.keys()))
