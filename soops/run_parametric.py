@@ -449,6 +449,8 @@ def run_parametric(options):
     if options.shell:
         from soops.base import shell; shell()
 
+    cluster.close()
+
 def main():
     options = parse_args()
     return run_parametric(options)
