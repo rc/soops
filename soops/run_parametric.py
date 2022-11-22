@@ -375,7 +375,7 @@ def run_parametric(options):
                 apdf.loc[pkey] = sdf.iloc[0]
 
             else:
-                apdf = apdf.append(sdf)
+                apdf = pd.concat((apdf, sdf))
 
             cmd = make_cmd(run_cmd, opt_args, all_pars)
             dtime = datetime.now()
