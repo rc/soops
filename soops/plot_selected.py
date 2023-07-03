@@ -173,7 +173,7 @@ def add_legend(ax, selected, styles, used, format_labels=None,
                                      format_labels=format_labels)
     if per_parameter:
         if not isinstance(loc, list):
-            ploc = [loc] * len(plines)
+            loc = [loc] * len(lines)
 
         legs = []
         for plines, plabels, ploc in zip(lines, labels, loc):
