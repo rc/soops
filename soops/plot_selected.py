@@ -157,11 +157,14 @@ def get_legend_items(selected, styles, used=None, format_labels=None):
                 (line.get_marker() == 'None')):
                 line.set_linestyle('-')
 
-            plines.append(line)
-            plabels.append(format_labels(key, iv, val))
+            label = format_labels(key, iv, val)
+            if label is not None:
+                plines.append(line)
+                plabels.append(label)
 
-        lines.append(plines)
-        labels.append(plabels)
+        if plabels:
+            lines.append(plines)
+            labels.append(plabels)
 
     return lines, labels
 
