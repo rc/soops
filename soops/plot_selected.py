@@ -157,11 +157,14 @@ def get_legend_items(selected, styles, used=None, format_labels=None):
                 (line.get_marker() == 'None')):
                 line.set_linestyle('-')
 
-            plines.append(line)
-            plabels.append(format_labels(key, iv, val))
+            label = format_labels(key, iv, val)
+            if label is not None:
+                plines.append(line)
+                plabels.append(label)
 
-        lines.append(plines)
-        labels.append(plabels)
+        if plabels:
+            lines.append(plines)
+            labels.append(plabels)
 
     return lines, labels
 
@@ -173,7 +176,7 @@ def add_legend(ax, selected, styles, used, format_labels=None,
                                      format_labels=format_labels)
     if per_parameter:
         if not isinstance(loc, list):
-            ploc = [loc] * len(plines)
+            loc = [loc] * len(lines)
 
         legs = []
         for plines, plabels, ploc in zip(lines, labels, loc):
@@ -193,9 +196,13 @@ def add_legend(ax, selected, styles, used, format_labels=None,
         leg.get_frame().set_alpha(frame_alpha)
 
 def plot_selected(ax, df, column, selected, compares, styles,
-                  format_labels=None, xaxis=None, **plot_kwargs):
+                  format_labels=None, xaxis=None, legend_kwargs=None,
+                  **plot_kwargs):
     if ax is None:
         _, ax = plt.subplots()
+
+    if legend_kwargs is None:
+        legend_kwargs = {}
 
     used = None
     for ir in range(len(df)):
@@ -210,6 +217,7 @@ def plot_selected(ax, df, column, selected, compares, styles,
             ax.plot(df.loc[df.index[ir], xaxis],
                     df.loc[df.index[ir], column], **style_kwargs)
 
-    add_legend(ax, selected, styles, used, format_labels=format_labels)
+    add_legend(ax, selected, styles, used, format_labels=format_labels,
+               **legend_kwargs)
 
     return ax
