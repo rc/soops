@@ -157,7 +157,12 @@ def get_legend_items(selected, styles, used=None, format_labels=None):
                 (line.get_marker() == 'None')):
                 line.set_linestyle('-')
 
-            label = format_labels(key, iv, val)
+            if 'label' in kw:
+                label = kw['label']
+
+            else:
+                label = format_labels(key, iv, val)
+
             if label is not None:
                 plines.append(line)
                 plabels.append(label)
@@ -168,12 +173,10 @@ def get_legend_items(selected, styles, used=None, format_labels=None):
 
     return lines, labels
 
-def add_legend(ax, selected, styles, used, format_labels=None,
+def add_legend(ax, lines, labels, format_labels=None,
                per_parameter=False, loc='best', fontsize=None, frame_alpha=0.5,
                **kwargs):
 
-    lines, labels = get_legend_items(selected, styles, used=used,
-                                     format_labels=format_labels)
     if per_parameter:
         if not isinstance(loc, list):
             loc = [loc] * len(lines)
@@ -197,7 +200,7 @@ def add_legend(ax, selected, styles, used, format_labels=None,
 
 def plot_selected(ax, df, column, selected, compares, styles,
                   format_labels=None, xaxis=None, legend_kwargs=None,
-                  **plot_kwargs):
+                  make_legend=True, **plot_kwargs):
     if ax is None:
         _, ax = plt.subplots()
 
@@ -217,7 +220,14 @@ def plot_selected(ax, df, column, selected, compares, styles,
             ax.plot(df.loc[df.index[ir], xaxis],
                     df.loc[df.index[ir], column], **style_kwargs)
 
-    add_legend(ax, selected, styles, used, format_labels=format_labels,
-               **legend_kwargs)
+    lines, labels = get_legend_items(selected, styles, used=used,
+                                     format_labels=format_labels)
+    if make_legend:
+        add_legend(ax, lines, labels, format_labels=format_labels,
+                   **legend_kwargs)
+        out = ax
 
-    return ax
+    else:
+        out = ax, lines, labels
+
+    return out
