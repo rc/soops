@@ -173,9 +173,8 @@ def get_legend_items(selected, styles, used=None, format_labels=None):
 
     return lines, labels
 
-def add_legend(ax, lines, labels, format_labels=None,
-               per_parameter=False, loc='best', fontsize=None, frame_alpha=0.5,
-               **kwargs):
+def add_legend(ax, lines, labels, per_parameter=False, loc='best',
+               fontsize=None, frame_alpha=0.5, **kwargs):
 
     if per_parameter:
         if not isinstance(loc, list):
@@ -223,8 +222,7 @@ def plot_selected(ax, df, column, selected, compares, styles,
     lines, labels = get_legend_items(selected, styles, used=used,
                                      format_labels=format_labels)
     if make_legend:
-        add_legend(ax, lines, labels, format_labels=format_labels,
-                   **legend_kwargs)
+        add_legend(ax, lines, labels, **legend_kwargs)
         out = ax
 
     else:
