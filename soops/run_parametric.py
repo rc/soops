@@ -350,10 +350,12 @@ def run_parametric(options):
         if pkey in pkeys:
             podir = apdf.loc[pkey, output_dir_key]
             iset = _get_iset(podir)
+            new = False
 
         else:
             iset = iseq
             podir = output_dir_template % ('{:03d}-{}'.format(iset, pkey))
+            new = True
 
         output('parameter set:', iset)
         output(_all_pars)
@@ -405,7 +407,8 @@ def run_parametric(options):
             call.dtime = dtime
             calls.append(call)
 
-            iseq += 1
+            if new:
+                iseq += 1
 
         else:
             call = client.submit(lambda: None)
