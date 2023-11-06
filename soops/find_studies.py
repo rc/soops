@@ -20,6 +20,10 @@ helps = {
     : 'pandas query expression applied to collected parameters',
     'engine'
     : 'pandas query evaluation engine [default: %(default)s]',
+    'mode'
+    : 'output mode [default: %(default)s]',
+    'key'
+    : 'column key. If given, forces "single" output mode [default: output_dir]',
     'shell'
     : 'run ipython shell after all computations',
     'directories'
@@ -36,11 +40,22 @@ def parse_args(args=None):
     parser.add_argument('--engine', action='store', dest='engine',
                         choices=['numexpr', 'python'],
                         default='numexpr', help=helps['engine'])
+    parser.add_argument('-m', '--mode', action='store', dest='mode',
+                        choices=('truncated', 'full', 'single'),
+                        default='truncated', help=helps['mode'])
+    parser.add_argument('-k', '--key', action='store', dest='key',
+                        default=None, help=helps['key'])
     parser.add_argument('--shell',
                         action='store_true', dest='shell',
                         default=False, help=helps['shell'])
     parser.add_argument('directories', nargs='+', help=helps['directories'])
     options = parser.parse_args(args=args)
+
+    if options.key is not None:
+        options.mode = 'single'
+
+    elif options.mode == 'single':
+        options.key = 'output_dir'
 
     return options
 
@@ -68,9 +83,20 @@ def find_studies(options):
         if options.query is not None:
             sdf = apdf.query(options.query, engine=options.engine)
 
-            for ii in range(len(sdf)):
-                row = sdf.iloc[ii]
-                output('result {} in {}:\n{}'.format(ii, row['output_dir'], row))
+            if options.mode in ('truncated', 'full'):
+                if options.mode == 'full':
+                    pd.set_option('display.max_colwidth', None)
+
+                for ii in range(len(sdf)):
+                    row = sdf.iloc[ii]
+                    output('result {} in {}:\n{}'
+                           .format(ii, row['output_dir'], row))
+
+            elif options.mode == 'single':
+                output.prefix = ''
+                for ii in range(len(sdf)):
+                    row = sdf.iloc[ii]
+                    output(row[options.key])
 
     else:
         apdf = pd.DataFrame()
