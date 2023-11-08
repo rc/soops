@@ -25,6 +25,8 @@ cmd_info = r"""{soops_dir}/examples/monty_hall.py -e {output_dir}/study0/000-5ad
 
 cmd_find = r"""--query=num==1000&repeat==20&seed==12345 {output_dir}/study0"""
 
+cmd_jobs = r"""-v"""
+
 @pytest.fixture(scope='session')
 def soops_dir():
     return os.path.normpath(os.path.join(os.path.dirname(__file__), '../'))
@@ -107,3 +109,12 @@ def test_find_studies(soops_dir, output_dir):
                                     output_dir=output_dir).split())
     apdf = fs.find_studies(options)
     assert len(apdf) == 4
+
+def test_show_jobs(soops_dir, output_dir):
+    import soops.show_jobs as sj
+
+    print(soops_dir)
+    print(output_dir)
+    options = sj.parse_args(args=cmd_jobs.split())
+    jobs = sj.show_jobs(options)
+    assert isinstance(jobs, list)
