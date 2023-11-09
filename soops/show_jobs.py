@@ -1,6 +1,17 @@
 #!/usr/bin/env python
 """
 Show running jobs launched by soops-run.
+
+Examples
+--------
+
+- Print jobs information::
+
+  soops-jobs -v
+
+- Follow the output of the last modified output log in the bash shell::
+
+  tail -f $(soops-jobs -vv | tail -1)
 """
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import psutil
@@ -25,8 +36,8 @@ def parse_args(args=None):
     parser = ArgumentParser(description=__doc__,
                             formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('-v', '--verbose',
-                        action='store_true', dest='verbose',
-                        default=False, help=helps['verbose'])
+                        action='count', dest='verbose',
+                        default=0, help=helps['verbose'])
     parser.add_argument('--shell',
                         action='store_true', dest='shell',
                         default=False, help=helps['shell'])
@@ -82,8 +93,9 @@ def print_jobs_info(jobs, infos, options):
             print(f'job: {job.pid} ({job.status()})')
             print('output in:', info.job_output_dir)
             print(f'finished: {info.n_finished}/{info.num}')
-            print('last log:')
-            print(info.log_file)
+            if options.verbose > 1:
+                print('last log:')
+                print(info.log_file)
 
     else:
         print([(job.pid, job.status()) for job in jobs])
