@@ -1,6 +1,19 @@
 def build_arg_parser(parser, arg_conf, is_help=True):
     """
     Build an argument parser according to `arg_conf` using argparse.
+
+    Items of `arg_conf` have the form ``key: (value, 'help message')``.
+
+    The key is prefixed with '--' and '_' -> '-' to create the option name.
+
+    The values can be:
+    - False -> the action is 'store_true'
+    - True -> the action is 'store_false', the option is prefixed with 'no-'
+    - value -> the action is 'store', the type is inferred
+    - tuple of values -> the type is inferred from the first item, choices are
+      created
+    - [value0, value1] -> the type is inferred from value1, the default is
+      value0, a typical example is [None, 0.0]
     """
     helps = {}
 
