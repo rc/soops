@@ -24,6 +24,9 @@ def load_csv(filename, orient='list', rdata=None):
     df = pd.read_csv(filename)
     return df.to_dict(orient=orient)
 
+def load_soops_parameters(filename, orient='list', rdata=None):
+    return load_csv(filename, orient='index')[0]
+
 def split_options(options, split_keys):
     new_options = options.copy()
     for okey, nkeys in split_keys.items():
