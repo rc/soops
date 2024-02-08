@@ -25,6 +25,8 @@ def format_float_latex(val, prec):
             fmt = '{{:.{}e}}'.format(prec)
             sval = fmt.format(val)
             iexp = list(map(float, sval.split('e')))
+            if prec == 0:
+                iexp[0] = int(iexp[0])
             iexp[1] = int(iexp[1])
             return r'${} \cdot 10^{{{}}}$'.format(*iexp)
 
