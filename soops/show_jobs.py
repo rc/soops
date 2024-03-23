@@ -46,7 +46,8 @@ def parse_args(args=None):
 
 def find_jobs():
     jobs = [proc for proc in psutil.process_iter(['pid', 'cwd', 'cmdline'])
-            if 'soops-run' in ''.join(proc.info['cmdline'])]
+            if (proc.info['cmdline']
+                and ('soops-run' in ''.join(proc.info['cmdline'])))]
     return jobs
 
 def get_job_info(job):
