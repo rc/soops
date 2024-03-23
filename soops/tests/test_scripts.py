@@ -116,5 +116,6 @@ def test_show_jobs(soops_dir, output_dir):
     print(soops_dir)
     print(output_dir)
     options = sj.parse_args(args=cmd_jobs.split())
-    jobs = sj.show_jobs(options)
+    jobs, infos = sj.show_jobs(options)
     assert isinstance(jobs, list)
+    assert isinstance(infos, list)
