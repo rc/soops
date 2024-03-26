@@ -185,3 +185,15 @@ def parse_as_dict(string, allow_tuple=False, free_word=False, defaults=None):
         out.update(r)
 
     return out
+
+def extract_floats(tokens, delete='[]'):
+    out = []
+    for token in tokens:
+        for ch in delete:
+            token = token.replace(ch, '')
+
+        if len(token):
+            val = float(token)
+            out.append(val)
+
+    return out
