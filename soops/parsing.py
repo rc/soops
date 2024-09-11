@@ -2,6 +2,7 @@ from pyparsing import (Word, Group, Suppress, Combine, Optional,
                        Forward, Empty, quotedString, oneOf, removeQuotes,
                        delimitedList, nums, alphas, alphanums,
                        Keyword, CaselessLiteral)
+from functools import partial
 
 (lparen, rparen, lbrack, rbrack,
  lbrace, rbrace, colon, equal_sign) = map(Suppress, '()[]{}:=')
@@ -186,14 +187,17 @@ def parse_as_dict(string, allow_tuple=False, free_word=False, defaults=None):
 
     return out
 
-def extract_floats(tokens, delete='[]'):
+def extract_values(tokens, delete='[]', dtype=float):
     out = []
     for token in tokens:
         for ch in delete:
             token = token.replace(ch, '')
 
         if len(token):
-            val = float(token)
+            val = dtype(token)
             out.append(val)
 
     return out
+
+extract_ints = partial(extract_values, dtype=int)
+extract_floats = extract_values
