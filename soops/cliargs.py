@@ -50,3 +50,23 @@ def build_arg_parser(parser, arg_conf, is_help=True):
             parser.add_argument('--' + option.replace('_', '-'),
                                 action=action, dest=key,
                                 default=val, help=helps[key])
+
+def build_opt_args(arg_conf,
+                   omit=('--output-dir', '--plot-rc-params',
+                         '--show', '--silent', '--shell', '--debug'),
+                   add_to_omit=None):
+    """
+    Build a list of optional arguments for `soops-run`. See
+    :func:`build_arg_parser()` for `arg_conf` explanation, though only its keys
+    are used here. Arguments in `omit` and `add_to_omit` are skipped.
+    """
+    if add_to_omit is not None:
+        omit = omit + tuple(add_to_omit)
+
+    out = []
+    for key in arg_conf.keys():
+        opt = '--' + key.replace('_', '-')
+        if opt not in omit:
+            out.append(f'{opt}={{{opt}}}')
+
+    return out
