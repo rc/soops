@@ -17,7 +17,12 @@ from soops.parsing import parse_as_dict, parse_as_list
 from soops.ioutils import load_options, locate_files, ensure_path
 
 def load_array(filename, key='array', load_kwargs={}, rdata=None):
-    arr = np.loadtxt(filename, **load_kwargs)
+    if not (filename.endswith('.npy') or filename.endswith('.npz')):
+        arr = np.loadtxt(filename, **load_kwargs)
+
+    else:
+        arr = np.load(filename, **load_kwargs)
+
     return {key : arr}
 
 def load_csv(filename, orient='list', rdata=None):
