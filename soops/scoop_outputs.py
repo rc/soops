@@ -222,6 +222,12 @@ def run_plugins(info, df, output_dir, par_keys, store_filename,
 
     return data
 
+def write_results(results_filename, df, mdf, par_keys):
+    with pd.HDFStore(results_filename, mode='w') as store:
+        store.put('df', df)
+        store.put('mdf', mdf)
+        store.put('par_keys', pd.Series(list(par_keys)))
+
 helps = {
     'sort' : 'column keys for sorting of DataFrame rows',
     'filter' : 'use only DataFrame rows with given files successfully scooped',
@@ -383,10 +389,7 @@ def scoop_outputs(options):
     results_filename = options.results
     ensure_path(results_filename)
     if new_results or options.write:
-        with pd.HDFStore(results_filename, mode='w') as store:
-            store.put('df', df)
-            store.put('mdf', mdf)
-            store.put('par_keys', pd.Series(list(par_keys)))
+        write_results(results_filename, df, mdf, par_keys)
 
         if options.save_csv:
             filename = op.join(options.output_dir, 'results.csv')
