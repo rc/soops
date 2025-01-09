@@ -222,6 +222,12 @@ def run_plugins(info, df, output_dir, par_keys, store_filename,
 
     return data
 
+def write_results(results_filename, df, mdf, par_keys):
+    with pd.HDFStore(results_filename, mode='w') as store:
+        store.put('df', df)
+        store.put('mdf', mdf)
+        store.put('par_keys', pd.Series(list(par_keys)))
+
 helps = {
     'sort' : 'column keys for sorting of DataFrame rows',
     'filter' : 'use only DataFrame rows with given files successfully scooped',
@@ -238,6 +244,8 @@ helps = {
     'reuse' : 'reuse previously scooped results file',
     'write' : 'write results files even when results were loaded using '
     '--reuse option',
+    'write_after_plugins' :
+    """write the pandas HDF5 results file again after plugins were applied""",
     'shell' : 'run ipython shell after all computations',
     'debug' : 'automatically start debugger when an exception is raised',
     'output_dir' : 'output directory [default: %(default)s]',
@@ -285,6 +293,9 @@ def parse_args(args=None):
     parser.add_argument('--write',
                         action='store_true', dest='write',
                         default=False, help=helps['write'])
+    parser.add_argument('--write-after-plugins',
+                        action='store_true', dest='write_after_plugins',
+                        default=False, help=helps['write_after_plugins'])
     parser.add_argument('--shell',
                         action='store_true', dest='shell',
                         default=False, help=helps['shell'])
@@ -383,10 +394,7 @@ def scoop_outputs(options):
     results_filename = options.results
     ensure_path(results_filename)
     if new_results or options.write:
-        with pd.HDFStore(results_filename, mode='w') as store:
-            store.put('df', df)
-            store.put('mdf', mdf)
-            store.put('par_keys', pd.Series(list(par_keys)))
+        write_results(results_filename, df, mdf, par_keys)
 
         if options.save_csv:
             filename = op.join(options.output_dir, 'results.csv')
@@ -433,6 +441,9 @@ def scoop_outputs(options):
 
         else:
             output('no get_plugin_info() in {}'.format(plugin_mod.__name__))
+
+        if options.write_after_plugins:
+            write_results(results_filename, df, mdf, par_keys)
 
     if options.shell:
         from soops.base import shell; shell()
