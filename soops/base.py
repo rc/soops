@@ -290,8 +290,26 @@ def python_shell(frame=0):
 
 def ipython_shell(frame=0, magics=None):
     from IPython.terminal.embed import InteractiveShellEmbed
-    ipshell = InteractiveShellEmbed()
+    from IPython.paths import get_ipython_dir
+    from traitlets.config import Config
+    from traitlets.config.loader import PyFileConfigLoader
+
+    # Locate the IPython configuration directory.
+    ipython_dir = get_ipython_dir()
+    config_file = os.path.join(ipython_dir, 'profile_default',
+                               'ipython_config.py')
+
+    # Load the user configuration if it exists.
+    config = Config()
+    if os.path.exists(config_file):
+        loader = PyFileConfigLoader(config_file)
+        config.update(loader.load_config())
+
+    # Start the embedded IPython shell with the configuration.
+    ipshell = InteractiveShellEmbed(config=config)
+
     if magics is not None:
+        # Run line magic functions if any.
         for magic in magics:
             if isinstance(magic, str):
                 magic = (magic, '')
