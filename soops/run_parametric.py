@@ -216,7 +216,9 @@ def run_parametric(options):
 
     if op.isfile(options.conf):
         import configparser
-        config = configparser.ConfigParser(interpolation=None)
+        config = configparser.ConfigParser(
+            interpolation=configparser.ExtendedInterpolation(),
+        )
 
         config.read(options.conf)
         skeys = list(config.keys())
