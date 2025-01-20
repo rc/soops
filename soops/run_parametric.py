@@ -157,7 +157,7 @@ def parse_args(args=None):
                         default=None, help=helps['compute_pars'])
     parser.add_argument('-s', '--study', metavar='str',
                         action='store', dest='study',
-                        default='study', help=helps['study'])
+                        default=None, help=helps['study'])
     parser.add_argument('--silent',
                         action='store_false', dest='verbose',
                         default=True, help=helps['silent'])
