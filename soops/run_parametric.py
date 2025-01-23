@@ -157,7 +157,7 @@ def parse_args(args=None):
                         default=None, help=helps['compute_pars'])
     parser.add_argument('-s', '--study', metavar='str',
                         action='store', dest='study',
-                        default='study', help=helps['study'])
+                        default=None, help=helps['study'])
     parser.add_argument('--silent',
                         action='store_false', dest='verbose',
                         default=True, help=helps['silent'])
@@ -216,7 +216,9 @@ def run_parametric(options):
 
     if op.isfile(options.conf):
         import configparser
-        config = configparser.ConfigParser(interpolation=None)
+        config = configparser.ConfigParser(
+            interpolation=configparser.ExtendedInterpolation(),
+        )
 
         config.read(options.conf)
         skeys = list(config.keys())
@@ -262,8 +264,9 @@ def run_parametric(options):
 
         gconf = generate_pars(Struct(dgenerate_pars), gkeys, dconf, options)
         if set(gkeys) != set(gconf.keys()):
-            raise ValueError('generated keys mismatch! (conf: {}, generated: {})'
-                             .format(set(gkeys), set(gconf.keys())))
+            output('conf:\n{}'.format(sorted(set(gkeys))))
+            output('generated:\n{}'.format(sorted(set(gconf.keys()))))
+            raise ValueError('generated keys mismatch! (see above)')
 
         dconf.update(gconf)
 
@@ -282,8 +285,9 @@ def run_parametric(options):
                              omit=(output_dir_key, 'script_dir'))
     if not (keys.issuperset(key_order)
             and (keys.difference(key_order) == set([output_dir_key]))):
-        raise ValueError('parametric keys mismatch! (conf: {},  collected: {})'
-                         .format(keys, key_order))
+        output('conf:\n{}'.format(sorted(set(keys))))
+        output('collected:\n{}'.format(sorted(set(key_order))))
+        raise ValueError('parametric keys mismatch! (see above)')
 
     filename = op.join(options.output_dir, 'options.txt')
     ensure_path(filename)
