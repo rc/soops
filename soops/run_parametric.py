@@ -96,6 +96,8 @@ helps = {
         2: always recompute [default:  %(default)s]""",
     'n_workers' :
     'the number of dask workers [default: %(default)s]',
+    'cluster_kwargs' :
+    'additional keyword arguments for LocalCluster [default:  %(default)s]',
     'run_function' :
     'function for running the parameterized command [default: %(default)s]',
     'timeout' :
@@ -137,6 +139,10 @@ def parse_args(args=None):
     parser.add_argument('-n', '--n-workers', type=int, metavar='int',
                         action='store', dest='n_workers',
                         default=2, help=helps['n_workers'])
+    parser.add_argument('--cluster-kwargs', metavar='dict-like',
+                        action='store', dest='cluster_kwargs',
+                        default='threads_per_worker=1',
+                        help=helps['cluster_kwargs'])
     parser.add_argument('--run-function', action='store', dest='run_function',
                         choices=['subprocess.run', 'psutil.Popen', 'os.system'],
                         default='subprocess.run', help=helps['run_function'])
@@ -170,6 +176,8 @@ def parse_args(args=None):
     parser.add_argument('conf', help=helps['conf'])
     parser.add_argument('run_mod', help=helps['run_mod'])
     options = parser.parse_args(args=args)
+
+    options.cluster_kwargs = parse_as_dict(options.cluster_kwargs)
 
     if options.generate_pars is not None:
         if ('=' in options.generate_pars) or (':' in options.generate_pars):
@@ -340,7 +348,8 @@ def run_parametric(options):
 
     output('number of parameter sets:', count)
 
-    cluster = LocalCluster(n_workers=options.n_workers, threads_per_worker=1)
+    cluster = LocalCluster(n_workers=options.n_workers,
+                           **options.cluster_kwargs)
     client = Client(cluster)
 
     calls = []
