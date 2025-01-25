@@ -40,7 +40,7 @@ def make_cmd(run_cmd, opt_args, all_pars):
                     raise ValueError(
                         'unsupported specital parameter value! (%s)' % par
                     )
-            cmd += ' ' + opt_args[key].strip()
+            cmd += ' "' + opt_args[key].strip() + '"'
 
     cmd = cmd.format(**all_pars)
     return cmd
