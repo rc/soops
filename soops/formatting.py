@@ -1,4 +1,7 @@
+from functools import partial
 from math import isfinite
+
+import numpy as np
 
 from soops.base import output, run_command
 
@@ -41,6 +44,19 @@ def format_float_latex(val, prec, in_math=False):
 
     else:
         return str(val)
+
+def format_array_latex(arr, prec=2, env='bmatrix'):
+    arr = np.asarray(arr)
+    arr = arr.reshape((arr.shape[0], -1))
+
+    fmt = partial(format_float_latex, prec=prec, in_math=True)
+
+    rows = [' & '.join(map(fmt, row)) for row in arr]
+    body = ' \\\\\n'.join(rows)
+
+    out = fragments['env'].format(env=env, text=body)
+
+    return out
 
 def escape_latex(txt):
     out = (txt.replace('\\', '\\textbackslash ')
