@@ -5,6 +5,61 @@ import numpy as np
 
 from soops.base import output, run_command
 
+fragments = {
+    #
+    'begin-document' : r"""
+\documentclass[{options}]{{article}}
+
+\usepackage{{siunitx}}
+\usepackage{{booktabs}}
+\usepackage{{graphicx}}
+\usepackage{{amsmath}}
+\usepackage{{a4wide}}
+
+\begin{{document}}
+    """,
+    #
+    'end-document' : r"""
+\end{document}
+    """,
+    #
+    'section' : r"""
+\{level}section{{{name}}}
+\label{{{label}}}
+    """,
+    #
+    'center' : r"""
+\begin{{center}}
+{text}
+\end{{center}}
+""",
+    #
+    'env' : r"""\begin{{{env}}}
+{text}
+\end{{{env}}}""",
+    #
+    'figure' : r"""
+\begin{{figure}}[htp!]
+  \centering
+    \includegraphics[width={width}\linewidth]{{{path}}}
+  \caption{{{caption}}}
+  \label{{{label}}}
+\end{{figure}}
+    """,
+    #
+    'newline' : r"""
+\\
+""",
+    #
+    'newpage' : r"""
+\clearpage
+""",
+    #
+    'input' : r"""
+\input {filename}
+    """,
+}
+
 def format_float(val, prec, replace_dot=True):
     if isinstance(prec, int):
         fmt = '{{:.{}e}}'.format(prec)
