@@ -16,7 +16,7 @@ def format_float(val, prec, replace_dot=True):
     else:
         return aux
 
-def format_float_latex(val, prec):
+def format_float_latex(val, prec, in_math=False):
     if val == 0.0:
         return '0'
 
@@ -28,11 +28,16 @@ def format_float_latex(val, prec):
             if prec == 0:
                 iexp[0] = int(iexp[0])
             iexp[1] = int(iexp[1])
-            return r'${} \cdot 10^{{{}}}$'.format(*iexp)
+            out = r'{} \cdot 10^{{{}}}'.format(*iexp)
 
         else:
             aux = r'{{:{}}}'.format(prec).format(val).replace(' ', '\enspace ')
-            return r'${}$'.format(aux)
+            out = r'{}'.format(aux)
+
+        if not in_math:
+            out = '$' + out + '$'
+
+        return out
 
     else:
         return str(val)
