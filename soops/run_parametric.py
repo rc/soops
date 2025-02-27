@@ -382,7 +382,14 @@ def run_parametric(options):
         if ((recompute > 1) or
             (recompute and not is_finished(all_pars, options))):
 
-            sdf = pd.DataFrame({'finished' : False, **all_pars}, index=[pkey])
+            sdf = pd.DataFrame(
+                {
+                    'finished' : False,
+                    'iset' : '{:03d}'.format(iset),
+                    **all_pars
+                },
+                index=[pkey],
+            )
             sdf.to_csv(op.join(podir, 'soops-parameters.csv'),
                        index_label='pkey')
 

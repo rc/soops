@@ -1,6 +1,64 @@
+from functools import partial
 from math import isfinite
 
+import numpy as np
+
 from soops.base import output, run_command
+
+fragments = {
+    #
+    'begin-document' : r"""
+\documentclass[{options}]{{article}}
+
+\usepackage{{siunitx}}
+\usepackage{{booktabs}}
+\usepackage{{graphicx}}
+\usepackage{{amsmath}}
+\usepackage{{a4wide}}
+
+\begin{{document}}
+    """,
+    #
+    'end-document' : r"""
+\end{document}
+    """,
+    #
+    'section' : r"""
+\{level}section{{{name}}}
+\label{{{label}}}
+    """,
+    #
+    'center' : r"""
+\begin{{center}}
+{text}
+\end{{center}}
+""",
+    #
+    'env' : r"""\begin{{{env}}}
+{text}
+\end{{{env}}}""",
+    #
+    'figure' : r"""
+\begin{{figure}}[htp!]
+  \centering
+    \includegraphics[width={width}\linewidth]{{{path}}}
+  \caption{{{caption}}}
+  \label{{{label}}}
+\end{{figure}}
+    """,
+    #
+    'newline' : r"""
+\\
+""",
+    #
+    'newpage' : r"""
+\clearpage
+""",
+    #
+    'input' : r"""
+\input {filename}
+    """,
+}
 
 def format_float(val, prec, replace_dot=True):
     if isinstance(prec, int):
@@ -16,7 +74,7 @@ def format_float(val, prec, replace_dot=True):
     else:
         return aux
 
-def format_float_latex(val, prec):
+def format_float_latex(val, prec, in_math=False):
     if val == 0.0:
         return '0'
 
@@ -28,14 +86,32 @@ def format_float_latex(val, prec):
             if prec == 0:
                 iexp[0] = int(iexp[0])
             iexp[1] = int(iexp[1])
-            return r'${} \cdot 10^{{{}}}$'.format(*iexp)
+            out = r'{} \cdot 10^{{{}}}'.format(*iexp)
 
         else:
             aux = r'{{:{}}}'.format(prec).format(val).replace(' ', '\enspace ')
-            return r'${}$'.format(aux)
+            out = r'{}'.format(aux)
+
+        if not in_math:
+            out = '$' + out + '$'
+
+        return out
 
     else:
         return str(val)
+
+def format_array_latex(arr, prec=2, env='bmatrix'):
+    arr = np.asarray(arr)
+    arr = arr.reshape((arr.shape[0], -1))
+
+    fmt = partial(format_float_latex, prec=prec, in_math=True)
+
+    rows = [' & '.join(map(fmt, row)) for row in arr]
+    body = ' \\\\\n'.join(rows)
+
+    out = fragments['env'].format(env=env, text=body)
+
+    return out
 
 def escape_latex(txt):
     out = (txt.replace('\\', '\\textbackslash ')
