@@ -114,6 +114,9 @@ helps = {
     'if given, compute additional parameters using the specified class',
     'study' :
     'study key when parameter sets are given by a study configuration file',
+    'extra_conf' :
+    """a dict-like parametric study configuration that can be used to override
+       values in 'conf' positional argument""",
     'silent' :
     'do not print messages to screen',
     'shell' :
@@ -164,6 +167,9 @@ def parse_args(args=None):
     parser.add_argument('-s', '--study', metavar='str',
                         action='store', dest='study',
                         default=None, help=helps['study'])
+    parser.add_argument('--conf', metavar='str',
+                        action='store', dest='extra_conf',
+                        default='', help=helps['extra_conf'])
     parser.add_argument('--silent',
                         action='store_false', dest='verbose',
                         default=True, help=helps['silent'])
@@ -177,6 +183,7 @@ def parse_args(args=None):
     parser.add_argument('run_mod', help=helps['run_mod'])
     options = parser.parse_args(args=args)
 
+    options.extra_conf = parse_as_dict(options.extra_conf, free_word=True)
     options.cluster_kwargs = parse_as_dict(options.cluster_kwargs)
 
     if options.generate_pars is not None:
@@ -246,6 +253,8 @@ def run_parametric(options):
 
     else:
         dconf = parse_as_dict(options.conf, free_word=True)
+
+    dconf.update(options.extra_conf)
 
     seq_keys = [key for key, val in dconf.items()
                 if isinstance(val, str) and
