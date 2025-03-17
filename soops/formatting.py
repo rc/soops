@@ -100,9 +100,13 @@ def format_float_latex(val, prec, in_math=False):
     else:
         return str(val)
 
-def format_array_latex(arr, prec=2, env='bmatrix'):
+def format_array_latex(arr, prec=2, rel_zero=0.0, env='bmatrix'):
     arr = np.asarray(arr)
     arr = arr.reshape((arr.shape[0], -1))
+
+    aarr = np.abs(arr)
+    vmax = aarr.max()
+    arr = np.where(aarr < vmax * rel_zero, 0.0, arr)
 
     fmt = partial(format_float_latex, prec=prec, in_math=True)
 
