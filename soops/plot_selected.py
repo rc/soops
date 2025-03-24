@@ -190,8 +190,8 @@ def add_legend(ax, lines, labels, per_parameter=False, loc='best',
             ax.add_artist(leg)
 
     else:
-        lines = itertools.chain(*lines)
-        labels = itertools.chain(*labels)
+        lines = list(itertools.chain(*lines))
+        labels = list(itertools.chain(*labels))
         leg = ax.legend(lines, labels, loc=loc, fontsize=fontsize, **kwargs)
 
     if leg is not None:
