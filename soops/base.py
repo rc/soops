@@ -53,9 +53,6 @@ class Output(Struct):
     def __init__(self, prefix, filename=None, quiet=False, combined=False,
                  append=False, **kwargs):
         Struct.__init__(self, filename=filename, output_dir=None, **kwargs)
-        if isinstance(filename, str):
-            self.output_dir = os.path.dirname(filename)
-
         self.prefix = prefix
 
         self.set_output(filename=filename, quiet=quiet,
@@ -174,6 +171,7 @@ class Output(Struct):
 
         def reset_file(filename):
             if isinstance(filename, str):
+                self.output_dir = os.path.dirname(filename)
                 if self.output_dir and not os.path.exists(self.output_dir):
                     os.makedirs(self.output_dir)
 
