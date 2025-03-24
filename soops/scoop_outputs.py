@@ -17,17 +17,30 @@ from soops.parsing import parse_as_dict, parse_as_list
 from soops.ioutils import load_options, locate_files, ensure_path
 
 def load_array(filename, key='array', columns=None, load_kwargs={}, rdata=None):
-    if not (filename.endswith('.npy') or filename.endswith('.npz')):
+    is_npy = filename.endswith('.npy')
+    is_npz = filename.endswith('.npz')
+    is_txt = not (is_npy or is_npz)
+    if is_txt:
         arr = np.loadtxt(filename, **load_kwargs)
 
     else:
         arr = np.load(filename, **load_kwargs)
 
-    if columns is None:
-        out = {key : arr}
+    if is_txt or is_npy:
+        if columns is None:
+            out = {key : arr}
 
-    elif arr.shape[-1] == len(columns):
-        out = {key : arr[..., ic] for ic, key in enumerate(columns)}
+        elif arr.shape[-1] == len(columns):
+            out = {key : arr[..., ic] for ic, key in enumerate(columns)}
+
+    else:
+        if columns is None:
+            out = {key : val for key, val in arr.items()}
+
+        else:
+            out = {key : arr[key] for key in columns}
+
+        arr.close()
 
     return out
 
