@@ -261,7 +261,7 @@ def run_parametric(options):
                 (val.startswith('@arange') or val.startswith('@linspace'))]
     for key in seq_keys:
         sfun = 'np.' + dconf[key][1:]
-        dconf[key] = list(eval(sfun, {'np' : np}, {}))
+        dconf[key] = eval(sfun, {'np' : np}, {}).tolist()
 
     if options.generate_pars is not None:
         if op.isfile(options.conf) and (isinstance(options.generate_pars, str)):
