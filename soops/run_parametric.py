@@ -281,8 +281,8 @@ def run_parametric(options):
 
         gconf = generate_pars(Struct(dgenerate_pars), gkeys, dconf, options)
         if set(gkeys) != set(gconf.keys()):
-            output('conf:\n{}'.format(sorted(set(gkeys))))
-            output('generated:\n{}'.format(sorted(set(gconf.keys()))))
+            output('conf:\n{}'.format(sorted(gkeys)))
+            output('generated:\n{}'.format(sorted(gconf.keys())))
             raise ValueError('generated keys mismatch! (see above)')
 
         dconf.update(gconf)
@@ -300,10 +300,12 @@ def run_parametric(options):
 
     key_order = collect_keys(run_cmd, opt_args,
                              omit=(output_dir_key, 'script_dir'))
-    if not (keys.issuperset(key_order)
-            and (keys.difference(key_order) == set([output_dir_key]))):
-        output('conf:\n{}'.format(sorted(set(keys))))
-        output('collected:\n{}'.format(sorted(set(key_order))))
+    collected_keys = set(key_order).union({output_dir_key})
+    if collected_keys != set(keys):
+        output('conf:\n{}'.format(sorted(keys)))
+        output('collected:\n{}'.format(sorted(collected_keys)))
+        output('missing in conf:\n{}'
+               .format(sorted(collected_keys.difference(keys))))
         raise ValueError('parametric keys mismatch! (see above)')
 
     filename = op.join(options.output_dir, 'options.txt')
