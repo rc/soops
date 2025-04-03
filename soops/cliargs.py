@@ -56,22 +56,41 @@ def build_arg_parser(parser, arg_conf, is_help=True):
                                 action=action, dest=key,
                                 default=val, help=msg)
 
+def _get_opt_from_key(key):
+    return '--' + key.replace('_', '-')
+
 def build_opt_args(arg_conf,
                    omit=('--output-dir', '--plot-rc-params',
                          '--show', '--silent', '--shell', '--debug'),
-                   add_to_omit=None):
+                   add_to_omit=None,
+                   return_defaults=False):
     """
     Build a list of optional arguments for `soops-run`. See
-    :func:`build_arg_parser()` for `arg_conf` explanation, though only its keys
-    are used here. Arguments in `omit` and `add_to_omit` are skipped.
+    :func:`build_arg_parser()` for `arg_conf` explanation. Arguments in `omit`
+    and `add_to_omit` are skipped.
+
+    Returns
+    -------
+    out : list or (list, dict)
+        The list of optional arguments and, if `return_defaults` is True, also
+        default values for options whose action is not 'store_false' or
+        'store_true'.
     """
     if add_to_omit is not None:
         omit = omit + tuple(add_to_omit)
 
     out = []
     for key in arg_conf.keys():
-        opt = '--' + key.replace('_', '-')
+        opt = _get_opt_from_key(key)
         if opt not in omit:
             out.append(f'{opt}={{{opt}}}')
+
+    if return_defaults:
+        targ_conf = _transform_arg_conf(arg_conf)
+        defaults = {_get_opt_from_key(key) : val[4]
+                    for key, val in targ_conf.items()
+                    if val[0] not in ('store_false', 'store_true')}
+
+        out = (out, defaults)
 
     return out
