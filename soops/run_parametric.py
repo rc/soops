@@ -214,6 +214,12 @@ def run_parametric(options):
         (run_cmd, opt_args, output_dir_key,
          _is_finished) = run_mod.get_run_info()
 
+        defaults = {}
+        if isinstance(opt_args, tuple):
+            # (opt_args, defaults)
+            defaults = opt_args[1]
+            opt_args = opt_args[0]
+
         if isinstance(opt_args, list):
             # '--option={--option}' -> '--option' : '--option={--option}'
             opt_args = {item.split('=')[0] : item for item in opt_args}
@@ -316,8 +322,10 @@ def run_parametric(options):
     output.set_output(filename=op.join(options.output_dir, 'output_log.txt'),
                       combined=options.verbose)
 
-    par_seqs = [make_key_list(key, dconf.get(key, '@undefined'))
-                for key in key_order]
+    par_seqs = [
+        make_key_list(key, dconf.get(key, defaults.get(key, '@undefined')))
+        for key in key_order
+    ]
 
     contracts = get_contracts(options.contract, par_seqs, key_order)
 
