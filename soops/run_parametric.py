@@ -215,10 +215,13 @@ def run_parametric(options):
          _is_finished) = run_mod.get_run_info()
 
         defaults = {}
+        nonhash_pars = []
         if isinstance(opt_args, tuple):
-            # (opt_args, defaults)
-            defaults = opt_args[1]
-            opt_args = opt_args[0]
+            if len(opt_args) == 2:
+                opt_args, defaults = opt_args
+
+            else:
+                opt_args, defaults, nonhash_pars = opt_args
 
         if isinstance(opt_args, list):
             # '--option={--option}' -> '--option' : '--option={--option}'
@@ -378,7 +381,9 @@ def run_parametric(options):
         all_pars.update(compute_pars(all_pars))
         it = ' '.join('%d' % ii for ii in _it)
 
-        pkey = hashlib.md5(str(all_pars).encode('utf-8')).hexdigest()
+        hash_pars = {key : val for key, val in all_pars.items()
+                     if key not in nonhash_pars}
+        pkey = hashlib.md5(str(hash_pars).encode('utf-8')).hexdigest()
         if pkey in pkeys:
             podir = apdf.loc[pkey, output_dir_key]
             iset = _get_iset(podir)
