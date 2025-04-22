@@ -87,7 +87,8 @@ def build_opt_args(arg_conf,
 
     if return_defaults:
         targ_conf = _transform_arg_conf(arg_conf)
-        defaults = {_get_opt_from_key(key) : val[4]
+        defaults = {_get_opt_from_key(key) : (val[4] if val[4] is not None
+                                              else '@undefined')
                     for key, val in targ_conf.items()
                     if val[0] not in ('store_false', 'store_true')}
 
