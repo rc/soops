@@ -45,6 +45,24 @@ def make_cmd(run_cmd, opt_args, all_pars):
     cmd = cmd.format(**all_pars)
     return cmd
 
+def gen_run_script(output_dir, cmd):
+    """
+    Generate a python script in `output_dir` that runs the command `cmd`.
+    """
+    script = f"""#!/usr/bin/env python3
+import subprocess
+import sys
+
+cmd = {cmd!r}
+
+result = subprocess.run(cmd, shell=True)
+sys.exit(result.returncode)
+"""
+    filename = op.join(output_dir, 'run.py')
+    with open(filename, 'w') as fd:
+        fd.write(script)
+    os.chmod(filename, 0o755)
+
 def run_with_psutil(cmd, options):
     import psutil
 
@@ -424,6 +442,7 @@ def run_parametric(options):
                 apdf = pd.concat((apdf, sdf))
 
             cmd = make_cmd(run_cmd, opt_args, all_pars)
+            gen_run_script(podir, cmd)
             dtime = datetime.now()
             output('submitting at', get_timestamp(dtime=dtime))
             output(cmd)
