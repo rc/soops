@@ -21,6 +21,9 @@ def _transform_arg_conf(arg_conf):
             vtype = type(val[1])
             val = val[0]
 
+        elif val is None: # Positional command line argument.
+            action = None
+
         targ_conf[key] = (action, vtype, option, choices, val, msg)
 
     return targ_conf
