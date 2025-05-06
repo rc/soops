@@ -44,6 +44,7 @@ def build_arg_parser(parser, arg_conf, is_help=True):
       created
     - [value0, value1] -> the type is inferred from value1, the default is
       value0, a typical example is [None, 0.0]
+    - None -> positional command line argument
     """
     dhelp = ' [default: %(default)s]'
 
@@ -54,10 +55,13 @@ def build_arg_parser(parser, arg_conf, is_help=True):
                                 type=vtype,
                                 action=action, dest=key, choices=choices,
                                 default=val, help=msg + dhelp)
-        else:
+        elif action is not None:
             parser.add_argument('--' + option.replace('_', '-'),
                                 action=action, dest=key,
                                 default=val, help=msg)
+
+        else:
+            parser.add_argument(option, help=msg)
 
 def _get_opt_from_key(key):
     return '--' + key.replace('_', '-')
