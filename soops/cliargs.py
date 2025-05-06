@@ -21,6 +21,9 @@ def _transform_arg_conf(arg_conf):
             vtype = type(val[1])
             val = val[0]
 
+        elif val is None: # Positional command line argument.
+            action = None
+
         targ_conf[key] = (action, vtype, option, choices, val, msg)
 
     return targ_conf
@@ -41,6 +44,7 @@ def build_arg_parser(parser, arg_conf, is_help=True):
       created
     - [value0, value1] -> the type is inferred from value1, the default is
       value0, a typical example is [None, 0.0]
+    - None -> positional command line argument
     """
     dhelp = ' [default: %(default)s]'
 
@@ -51,10 +55,13 @@ def build_arg_parser(parser, arg_conf, is_help=True):
                                 type=vtype,
                                 action=action, dest=key, choices=choices,
                                 default=val, help=msg + dhelp)
-        else:
+        elif action is not None:
             parser.add_argument('--' + option.replace('_', '-'),
                                 action=action, dest=key,
                                 default=val, help=msg)
+
+        else:
+            parser.add_argument(option, help=msg)
 
 def _get_opt_from_key(key):
     return '--' + key.replace('_', '-')
@@ -80,9 +87,9 @@ def build_opt_args(arg_conf,
         omit = omit + tuple(add_to_omit)
 
     out = []
-    for key in arg_conf.keys():
+    for key, val in arg_conf.items():
         opt = _get_opt_from_key(key)
-        if opt not in omit:
+        if (opt not in omit) and (val[0] is not None):
             out.append(f'{opt}={{{opt}}}')
 
     if return_defaults:
@@ -90,7 +97,7 @@ def build_opt_args(arg_conf,
         defaults = {_get_opt_from_key(key) : (val[4] if val[4] is not None
                                               else '@undefined')
                     for key, val in targ_conf.items()
-                    if val[0] not in ('store_false', 'store_true')}
+                    if val[0] not in ('store_false', 'store_true', None)}
 
         out = (out, defaults)
 
