@@ -87,9 +87,9 @@ def build_opt_args(arg_conf,
         omit = omit + tuple(add_to_omit)
 
     out = []
-    for key in arg_conf.keys():
+    for key, val in arg_conf.items():
         opt = _get_opt_from_key(key)
-        if opt not in omit:
+        if (opt not in omit) and (val[0] is not None):
             out.append(f'{opt}={{{opt}}}')
 
     if return_defaults:
@@ -97,7 +97,7 @@ def build_opt_args(arg_conf,
         defaults = {_get_opt_from_key(key) : (val[4] if val[4] is not None
                                               else '@undefined')
                     for key, val in targ_conf.items()
-                    if val[0] not in ('store_false', 'store_true')}
+                    if val[0] not in ('store_false', 'store_true', None)}
 
         out = (out, defaults)
 
