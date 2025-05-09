@@ -137,3 +137,40 @@ def build_pdf(filename):
                          repeat=3, silent=True)
     if status:
         output('build_pdf() failed with status {}!'.format(status))
+
+def format_next(text, new_text, pos, can_newline, width, ispaces):
+    new_len = len(new_text)
+
+    if (pos + new_len > width) and can_newline:
+        text += '\n' + ispaces + new_text
+        pos = new_len
+        can_newline = False
+
+    else:
+        if pos > 0:
+            text += ' ' + new_text
+            pos += new_len + 1
+
+        else:
+            text += ispaces + new_text
+            pos += len(ispaces) + new_len
+
+        can_newline = True
+
+    return text, pos, can_newline
+
+def typeset_to_indent(txt, indent, width):
+    if not len(txt): return txt
+
+    txt_lines = txt.strip().split('\n')
+    ispaces = ' ' * indent
+
+    can_newline = False
+    pos = 0
+    text = ''
+    for line in txt_lines:
+        for word in line.split():
+            text, pos, can_newline = format_next(text, word, pos, can_newline,
+                                                 width, ispaces)
+
+    return text
