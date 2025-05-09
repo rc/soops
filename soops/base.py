@@ -281,6 +281,63 @@ def import_file(filename, package_name=None, can_reload=True):
 
     return mod
 
+def is_derived_class(cls, parent):
+    return issubclass(cls, parent) and (cls is not parent)
+
+def find_subclasses(context, classes, omit_unnamed=False, name_attr='name'):
+    """
+    Find subclasses of the given classes in the given context.
+    """
+    table = {}
+    for key, var in context.items():
+        try:
+            for cls in classes:
+                if is_derived_class(var, cls):
+                    if hasattr(var, name_attr):
+                        key = getattr(var, name_attr)
+                        if omit_unnamed and not key:
+                            continue
+
+                    elif omit_unnamed:
+                        continue
+
+                    else:
+                        key = var.__class__.__name__
+
+                    table[key] = var
+                    break
+
+        except TypeError:
+            pass
+
+    return table
+
+def load_classes(filenames, classes, package_name=None, ignore_errors=False,
+                 name_attr='name'):
+    """
+    For each filename in filenames, load all subclasses of classes listed.
+    """
+    table = {}
+    for filename in filenames:
+        if not ignore_errors:
+            mod = import_file(filename, package_name=package_name,
+                              can_reload=False)
+
+        else:
+            try:
+                mod = import_file(filename, package_name=package_name,
+                                  can_reload=False)
+
+            except:
+                output('WARNING: module %s cannot be imported!' % filename)
+                output('reason:\n', sys.exc_info()[1])
+                continue
+
+        table.update(find_subclasses(vars(mod), classes, omit_unnamed=True,
+                                     name_attr=name_attr))
+
+    return table
+
 def python_shell(frame=0):
     import code
     frame = sys._getframe(frame+1)
