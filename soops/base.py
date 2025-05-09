@@ -39,7 +39,7 @@ class AttrDict(dict):
 
     def format_items(self):
         num = max(map(len, list(self.keys()))) + 1
-        return [key.rjust(num) + ': ' + repr(val)
+        return [f'{key.rjust(num)}: {val}'
                 for key, val in sorted(self.items())]
 
 class Struct(AttrDict):
