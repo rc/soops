@@ -239,6 +239,14 @@ def product(*seqs, contracts=None):
 
         yield out
 
+def get_default(arg, default, msg_if_none=None):
+    out = arg if arg is not None else default
+
+    if (out is None) and (msg_if_none is not None):
+        raise ValueError(msg_if_none)
+
+    return out
+
 def ordered_iteritems(adict):
     keys = sorted(adict.keys())
     for key in keys:
