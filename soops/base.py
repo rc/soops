@@ -72,7 +72,9 @@ class Output(Struct):
         verbose : bool (in **argv)
             No output if False.
         """
-        self.output_function(*argc, **argv)
+        verbose = argv.get('verbose', True)
+        if verbose:
+            self.output_function(*argc, **argv)
 
     def get_prefix(self):
         if len(self.prefix):
