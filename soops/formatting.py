@@ -132,6 +132,16 @@ def escape_latex(txt):
            else '{}')
     return out
 
+def itemize_latex(items):
+    """
+    Turn the `items` list into the itemize environment.
+    """
+    out = fragments['env'].format(
+        env='itemize',
+        text='\n'.join('\item ' + item for item in items)
+    )
+    return out
+
 def build_pdf(filename):
     status = run_command('pdflatex -interaction=nonstopmode', filename,
                          repeat=3, silent=True)
