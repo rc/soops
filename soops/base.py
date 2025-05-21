@@ -43,7 +43,12 @@ class AttrDict(dict):
                 for key, val in sorted(self.items())]
 
 class Struct(AttrDict):
-    pass
+
+    def format_items(self):
+        num = max(map(len, list(self.keys()))) + 1
+        return [f'{key.rjust(num)}: {val}' if not isinstance(val, Struct)
+                else f'{key.rjust(num)}: {repr(val)}'
+                for key, val in sorted(self.items())]
 
 class Output(Struct):
     """
