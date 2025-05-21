@@ -1,4 +1,5 @@
 import itertools
+from copy import deepcopy
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,7 +20,7 @@ def normalize_selected(selected):
     return nselected
 
 def setup_plot_styles(selected, raw_styles):
-    styles = raw_styles.copy()
+    styles = deepcopy(raw_styles)
     for key, style in raw_styles.items():
         if not key in selected:
             continue
@@ -53,6 +54,26 @@ def setup_plot_styles(selected, raw_styles):
                 styles[key][skey] = [svals]
 
     return styles
+
+def get_parameters_styles(parameters, styles=None, select=None):
+    """
+    Return selected parameters and plot styles for `parameters` dict based on
+    `styles` and `select` options dicts.
+    """
+    raw_styles = {key : {} for key in parameters.keys()}
+    if styles is not None:
+        styles = parse_as_dict(styles)
+        raw_styles.update(styles)
+
+    selected = parameters.copy()
+    if select is not None:
+        selected.update(parse_as_dict(select))
+
+    selected = normalize_selected(selected)
+
+    selected_styles = setup_plot_styles(selected, raw_styles)
+
+    return selected, selected_styles, raw_styles
 
 def get_cat_style(selected, key, styles, skey):
     cdict = {cat : val for cat, val in zip(selected[key], styles[key][skey])}

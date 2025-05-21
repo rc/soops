@@ -1,9 +1,12 @@
+import os.path as op
 from functools import partial
 from math import isfinite
 
 import numpy as np
+import pandas as pd
 
 from soops.base import output, run_command
+from soops.ioutils import fix_path
 
 fragments = {
     #
@@ -131,6 +134,54 @@ def escape_latex(txt):
            if (txt and txt != '{}')
            else '{}')
     return out
+
+def itemize_latex(items):
+    """
+    Turn the `items` list into the itemize environment.
+    """
+    out = fragments['env'].format(
+        env='itemize',
+        text='\n'.join('\item ' + item for item in items)
+    )
+    return out
+
+def make_tabular_latex(rows, **kwargs):
+    """
+    Put the `rows` dict or list into the tabular environment.
+    """
+    if isinstance(rows, dict):
+        pdf = pd.Series(rows).map(str)
+
+    else:
+        pdf = pd.DataFrame(rows)
+
+    pd.set_option('display.max_colwidth', None)
+    out = pdf.to_latex(**kwargs)
+    pd.reset_option('display.max_colwidth')
+
+    return out
+
+def setup_figures_latex(output_dir, figdir='figures'):
+    infdir = partial(op.join, fix_path(output_dir), 'figures')
+    infigdir = partial(op.join, 'figures')
+
+    def make_figure_latex(figname, width=1.0, caption='', label=None):
+        """
+        Make the figure environment with the `figname` image file.
+        """
+        if label is None:
+            label = 'fig:' + op.basename(figname)
+
+        out = fragments['figure'].format(
+            width=width,
+            path=infigdir(op.basename(figname)),
+            caption=caption,
+            label=label,
+        )
+
+        return out
+
+    return infdir, make_figure_latex
 
 def build_pdf(filename):
     status = run_command('pdflatex -interaction=nonstopmode', filename,

@@ -72,7 +72,9 @@ class Output(Struct):
         verbose : bool (in **argv)
             No output if False.
         """
-        self.output_function(*argc, **argv)
+        verbose = argv.get('verbose', True)
+        if verbose:
+            self.output_function(*argc, **argv)
 
     def get_prefix(self):
         if len(self.prefix):
@@ -238,6 +240,14 @@ def product(*seqs, contracts=None):
                 out[ik] = val
 
         yield out
+
+def get_default(arg, default, msg_if_none=None):
+    out = arg if arg is not None else default
+
+    if (out is None) and (msg_if_none is not None):
+        raise ValueError(msg_if_none)
+
+    return out
 
 def ordered_iteritems(adict):
     keys = sorted(adict.keys())
