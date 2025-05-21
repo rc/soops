@@ -1,4 +1,5 @@
 import itertools
+from copy import deepcopy
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,7 +20,7 @@ def normalize_selected(selected):
     return nselected
 
 def setup_plot_styles(selected, raw_styles):
-    styles = raw_styles.copy()
+    styles = deepcopy(raw_styles)
     for key, style in raw_styles.items():
         if not key in selected:
             continue
