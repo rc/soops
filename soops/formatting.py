@@ -105,6 +105,9 @@ def format_float_latex(val, prec, in_math=False):
 
 def format_array_latex(arr, prec=2, rel_zero=0.0, env='bmatrix'):
     arr = np.asarray(arr)
+    if arr.ndim == 0:
+        return format_float_latex(arr, prec, in_math=True)
+
     arr = arr.reshape((arr.shape[0], -1))
 
     aarr = np.abs(arr)
