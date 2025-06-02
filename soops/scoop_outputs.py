@@ -12,7 +12,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from soops.base import output, import_file, Struct
+from soops.base import output, product, import_file, Struct
 from soops.parsing import parse_as_dict, parse_as_list
 from soops.ioutils import load_options, locate_files, ensure_path
 
@@ -193,6 +193,16 @@ def get_uniques(df, columns):
         uniques[col] = vals
 
     return uniques
+
+def iter_uniques(df, columns, uniques):
+    pars = [uniques[col] for col in columns]
+    for ii, vals in enumerate(product(*pars)):
+        selection = Struct(dict(zip(columns, vals)))
+        sdf = df.loc[(df[columns] == vals).all(axis=1)]
+
+        if not len(sdf): continue
+
+        yield ii, selection, sdf
 
 def init_plugin_data(df, par_keys, output_dir, store_filename):
     par_uniques = get_uniques(df, par_keys)
