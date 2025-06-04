@@ -165,8 +165,8 @@ def make_tabular_latex(rows, **kwargs):
     return out
 
 def setup_figures_latex(output_dir, figdir='figures'):
-    infdir = partial(op.join, fix_path(output_dir), 'figures')
-    infigdir = partial(op.join, 'figures')
+    infdir = partial(op.join, fix_path(output_dir), figdir)
+    infigdir = partial(op.join, figdir)
 
     def make_figure_latex(figname, width=1.0, caption='', label=None):
         """
