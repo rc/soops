@@ -18,9 +18,10 @@ fragments = {
 \usepackage{{graphicx}}
 \usepackage{{amsmath}}
 \usepackage{{a4wide}}
+\usepackage{{multirow}}
 
 \begin{{document}}
-    """,
+""",
     #
     'end-document' : r"""
 \end{document}
