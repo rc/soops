@@ -78,7 +78,7 @@ def format_float(val, prec, replace_dot=True):
     else:
         return aux
 
-def format_float_latex(val, prec, in_math=False):
+def format_float_latex(val, prec, in_math=False, mul_one=True):
     if val == 0.0:
         return '0'
 
@@ -90,7 +90,11 @@ def format_float_latex(val, prec, in_math=False):
             if prec == 0:
                 iexp[0] = int(iexp[0])
             iexp[1] = int(iexp[1])
-            out = r'{} \cdot 10^{{{}}}'.format(*iexp)
+            if (iexp[0] == 1.0) and not mul_one:
+                out = r'10^{{{}}}'.format(iexp[1])
+
+            else:
+                out = r'{} \cdot 10^{{{}}}'.format(*iexp)
 
         else:
             aux = r'{{:{}}}'.format(prec).format(val).replace(' ', '\enspace ')
