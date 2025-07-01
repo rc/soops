@@ -3,10 +3,11 @@ import os
 import fnmatch
 import tempfile
 import shutil
+import glob
 import subprocess
 from collections.abc import Iterable
 
-from soops.base import ordered_iteritems
+from soops.base import output, ordered_iteritems
 from soops.parsing import parse_as_dict
 
 def ensure_path(filename):
@@ -83,6 +84,20 @@ def locate_files(pattern, root_dir=os.curdir, **kwargs):
                                                 **kwargs):
         for filename in fnmatch.filter(filenames, pattern):
             yield os.path.join(dirpath, filename)
+
+def remove_files(root_dir, **kwargs):
+    """
+    Remove all files and directories in supplied root directory.
+
+    The `**kwargs` arguments are passed to ``os.walk()``.
+    """
+    for dirpath, dirnames, filenames in os.walk(os.path.abspath(root_dir),
+                                                **kwargs):
+        for filename in filenames:
+            os.remove(os.path.join(root_dir, filename))
+
+        for dirname in dirnames:
+            shutil.rmtree(os.path.join(root_dir, dirname))
 
 def remove_files_patterns(root_dir, patterns, ignores=None,
                           verbose=False):
