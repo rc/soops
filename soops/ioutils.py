@@ -3,10 +3,11 @@ import os
 import fnmatch
 import tempfile
 import shutil
+import glob
 import subprocess
 from collections.abc import Iterable
 
-from soops.base import ordered_iteritems
+from soops.base import output, ordered_iteritems
 from soops.parsing import parse_as_dict
 
 def ensure_path(filename):
