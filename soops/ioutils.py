@@ -147,9 +147,14 @@ def save_options(filename, options_groups, save_command_line=True,
 
 def load_options(filename):
     with open(filename, 'r') as fd:
-        data = fd.readlines()
+        data = [line.strip() for line in fd.readlines()]
 
-    raw_options = [ii.strip() for ii in data[8:]]
+    for ii, line in enumerate(data):
+        if (line == 'options') and data[ii+1] == '-------':
+            ii += 3
+            break
+
+    raw_options = data[ii:]
     options = {}
     for opt in raw_options:
         aux = opt.split(':')
