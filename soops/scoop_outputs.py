@@ -52,6 +52,9 @@ def load_soops_parameters(filename, orient='list', rdata=None):
     return load_csv(filename, orient='index')[0]
 
 def split_options(options, split_keys):
+    if not isinstance(split_keys, dict):
+        split_keys = {key : None for key in split_keys}
+
     new_options = options.copy()
     for okey, nkeys in split_keys.items():
         vals = new_options.pop(okey)
