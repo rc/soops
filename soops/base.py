@@ -259,6 +259,18 @@ def ordered_iteritems(adict):
     for key in keys:
         yield key, adict[key]
 
+def flatten_dict(adict, prefix='', sep='__'):
+    out = {}
+    for key, val in adict.items():
+        new_key = prefix + key
+        if isinstance(val, dict):
+            out.update(flatten_dict(val, prefix=new_key + sep))
+
+        else:
+            out[new_key] = val
+
+    return out
+
 def import_file(filename, package_name=None, can_reload=True):
     """
     Import a file as a module. The module is explicitly reloaded to
