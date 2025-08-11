@@ -12,7 +12,7 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from soops.base import output, product, import_file, Struct
+from soops.base import output, product, flatten_dict, import_file, Struct
 from soops.parsing import parse_as_dict, parse_as_list
 from soops.ioutils import load_options, locate_files, ensure_path
 
@@ -51,7 +51,7 @@ def load_csv(filename, orient='list', rdata=None):
 def load_soops_parameters(filename, orient='list', rdata=None):
     return load_csv(filename, orient='index')[0]
 
-def split_options(options, split_keys):
+def split_options(options, split_keys, recur=False):
     if not isinstance(split_keys, dict):
         split_keys = {key : None for key in split_keys}
 
@@ -59,8 +59,13 @@ def split_options(options, split_keys):
     for okey, nkeys in split_keys.items():
         vals = new_options.pop(okey)
         if nkeys is None:
-            new_options.update({okey + '__' + key: val
-                                for key, val in vals.items()})
+            if recur:
+                new_options.update(flatten_dict(vals, prefix=okey + '__',
+                                                sep='__'))
+
+            else:
+                new_options.update({okey + '__' + key: val
+                                    for key, val in vals.items()})
 
         else:
             new_options.update({okey + '__' + nkeys[ii]: val
@@ -68,10 +73,10 @@ def split_options(options, split_keys):
 
     return new_options
 
-def load_split_options(filename, split_keys=None, rdata=None):
+def load_split_options(filename, split_keys=None, recur=False, rdata=None):
     options = load_options(filename)
     if split_keys is not None:
-        options = split_options(options, split_keys=split_keys)
+        options = split_options(options, split_keys=split_keys, recur=recur)
     return options
 
 def filter_dict(data, key_prefix, strip_prefix=True):
