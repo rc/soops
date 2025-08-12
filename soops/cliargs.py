@@ -90,7 +90,11 @@ def build_opt_args(arg_conf,
     for key, val in arg_conf.items():
         opt = _get_opt_from_key(key)
         if (opt not in omit) and (val[0] is not None):
-            out.append(f'{opt}={{{opt}}}')
+            if val[0] in (True, False):
+                out.append(f'{opt}')
+
+            else:
+                out.append(f'{opt}={{{opt}}}')
 
     if return_defaults:
         targ_conf = _transform_arg_conf(arg_conf)
