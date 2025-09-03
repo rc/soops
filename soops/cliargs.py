@@ -90,7 +90,7 @@ def build_opt_args(arg_conf,
     for key, val in arg_conf.items():
         opt = _get_opt_from_key(key)
         if (opt not in omit) and (val[0] is not None):
-            if val[0] in (True, False):
+            if (val[0] is True) or (val[0] is False):
                 out.append(f'{opt}')
 
             else:
