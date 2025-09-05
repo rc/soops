@@ -39,7 +39,9 @@ def build_arg_parser(parser, arg_conf, is_help=True):
     """
     Build an argument parser according to `arg_conf` using argparse.
 
-    Items of `arg_conf` have the form ``key: (value, 'help message')``.
+    Items of `arg_conf` have the form ``key: (value, 'help message')`` or
+    ``key: (value, 'help message', dict)``, where `dict` contains additional
+    arguments of `parser.add_argument()` such as `nargs` or `metavar`.
 
     The key is prefixed with '--' and '_' -> '-' to create the option name.
 
@@ -56,19 +58,20 @@ def build_arg_parser(parser, arg_conf, is_help=True):
     dhelp = ' [default: %(default)s]'
 
     targ_conf = _transform_arg_conf(arg_conf)
-    for key, (action, vtype, option, choices, val, msg) in targ_conf.items():
+    for key, (action, vtype, option, choices,
+              val, msg, extra) in targ_conf.items():
         if action == 'store':
             parser.add_argument('--' + option.replace('_', '-'),
                                 type=vtype,
                                 action=action, dest=key, choices=choices,
-                                default=val, help=msg + dhelp)
+                                default=val, help=msg + dhelp, **extra)
         elif action is not None:
             parser.add_argument('--' + option.replace('_', '-'),
                                 action=action, dest=key,
-                                default=val, help=msg)
+                                default=val, help=msg, **extra)
 
         else:
-            parser.add_argument(option, help=msg)
+            parser.add_argument(option, help=msg, **extra)
 
 def _get_opt_from_key(key):
     return '--' + key.replace('_', '-')
