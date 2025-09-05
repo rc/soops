@@ -1,6 +1,13 @@
 def _transform_arg_conf(arg_conf):
     targ_conf = {}
-    for key, (val, msg) in arg_conf.items():
+    for key, conf in arg_conf.items():
+        if len(conf) == 2:
+            (val, msg) = conf
+            extra = {}
+
+        else:
+            (val, msg, extra) = conf
+
         action = 'store'
         vtype = type(val)
         choices = None
@@ -24,7 +31,7 @@ def _transform_arg_conf(arg_conf):
         elif val is None: # Positional command line argument.
             action = None
 
-        targ_conf[key] = (action, vtype, option, choices, val, msg)
+        targ_conf[key] = (action, vtype, option, choices, val, msg, extra)
 
     return targ_conf
 
