@@ -35,7 +35,7 @@ def _transform_arg_conf(arg_conf):
 
     return targ_conf
 
-def build_arg_parser(parser, arg_conf, is_help=True, alternatives=None):
+def build_arg_parser(parser, arg_conf, aliases=None):
     """
     Build an argument parser according to `arg_conf` using argparse.
 
@@ -54,26 +54,30 @@ def build_arg_parser(parser, arg_conf, is_help=True, alternatives=None):
     - [value0, value1] -> the type is inferred from value1, the default is
       value0, a typical example is [None, 0.0]
     - None -> positional command line argument
+
+    The `aliases` dict can be used to pass additional option strings for each
+    key. For example ``aliases=dict(plot='-p')`` would create an alias '-p' to
+    '--plot' option.
     """
     dhelp = ' [default: %(default)s]'
-    if alternatives is None:
-        alternatives = {}
+    if aliases is None:
+        aliases = {}
 
     targ_conf = _transform_arg_conf(arg_conf)
     for key, (action, vtype, option, choices,
               val, msg, extra) in targ_conf.items():
         if action is not None:
             opt_arg_strs = ['--' + option.replace('_', '-')]
-            alt = alternatives.get(key, [])
-            if isinstance(alt, list):
-                opt_arg_strs = alt + opt_arg_strs
+            alias = aliases.get(key, [])
+            if isinstance(alias, list):
+                opt_arg_strs = alias + opt_arg_strs
 
-            elif isinstance(alt, str):
-                opt_arg_strs = [alt] + opt_arg_strs
+            elif isinstance(alias, str):
+                opt_arg_strs = [alias] + opt_arg_strs
 
             else:
-                raise ValueError('alternatives value can be either a list of'
-                                 f' strings or a string! (is {alt})')
+                raise ValueError('alias value can be either a list of'
+                                 f' strings or a string! (is {alias})')
 
         kwargs = extra.copy()
 
