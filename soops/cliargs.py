@@ -75,15 +75,20 @@ def build_arg_parser(parser, arg_conf, is_help=True, alternatives=None):
                 raise ValueError('alternatives value can be either a list of'
                                  f' strings or a string! (is {alt})')
 
+        kwargs = extra.copy()
+
         if action == 'store':
+            if (('metavar' not in kwargs) and (choices is None)):
+                kwargs['metavar'] = vtype.__name__.upper()
+
             parser.add_argument(*opt_arg_strs,
                                 type=vtype,
                                 action=action, dest=key, choices=choices,
-                                default=val, help=msg + dhelp, **extra)
+                                default=val, help=msg + dhelp, **kwargs)
         elif action is not None:
             parser.add_argument(*opt_arg_strs,
                                 action=action, dest=key,
-                                default=val, help=msg, **extra)
+                                default=val, help=msg, **kwargs)
 
         else:
             parser.add_argument(option, help=msg, **extra)
