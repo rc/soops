@@ -35,7 +35,7 @@ def _transform_arg_conf(arg_conf):
 
     return targ_conf
 
-def build_arg_parser(parser, arg_conf, is_help=True):
+def build_arg_parser(parser, arg_conf, is_help=True, alternatives=None):
     """
     Build an argument parser according to `arg_conf` using argparse.
 
@@ -56,17 +56,32 @@ def build_arg_parser(parser, arg_conf, is_help=True):
     - None -> positional command line argument
     """
     dhelp = ' [default: %(default)s]'
+    if alternatives is None:
+        alternatives = {}
 
     targ_conf = _transform_arg_conf(arg_conf)
     for key, (action, vtype, option, choices,
               val, msg, extra) in targ_conf.items():
+        if action is not None:
+            opt_arg_strs = ['--' + option.replace('_', '-')]
+            alt = alternatives.get(key, [])
+            if isinstance(alt, list):
+                opt_arg_strs = alt + opt_arg_strs
+
+            elif isinstance(alt, str):
+                opt_arg_strs = [alt] + opt_arg_strs
+
+            else:
+                raise ValueError('alternatives value can be either a list of'
+                                 f' strings or a string! (is {alt})')
+
         if action == 'store':
-            parser.add_argument('--' + option.replace('_', '-'),
+            parser.add_argument(*opt_arg_strs,
                                 type=vtype,
                                 action=action, dest=key, choices=choices,
                                 default=val, help=msg + dhelp, **extra)
         elif action is not None:
-            parser.add_argument('--' + option.replace('_', '-'),
+            parser.add_argument(*opt_arg_strs,
                                 action=action, dest=key,
                                 default=val, help=msg, **extra)
 
