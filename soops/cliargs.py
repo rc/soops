@@ -35,7 +35,7 @@ def _transform_arg_conf(arg_conf):
 
     return targ_conf
 
-def build_arg_parser(parser, arg_conf, is_help=True):
+def build_arg_parser(parser, arg_conf, aliases=None):
     """
     Build an argument parser according to `arg_conf` using argparse.
 
@@ -54,21 +54,45 @@ def build_arg_parser(parser, arg_conf, is_help=True):
     - [value0, value1] -> the type is inferred from value1, the default is
       value0, a typical example is [None, 0.0]
     - None -> positional command line argument
+
+    The `aliases` dict can be used to pass additional option strings for each
+    key. For example ``aliases=dict(plot='-p')`` would create an alias '-p' to
+    '--plot' option.
     """
     dhelp = ' [default: %(default)s]'
+    if aliases is None:
+        aliases = {}
 
     targ_conf = _transform_arg_conf(arg_conf)
     for key, (action, vtype, option, choices,
               val, msg, extra) in targ_conf.items():
+        if action is not None:
+            opt_arg_strs = ['--' + option.replace('_', '-')]
+            alias = aliases.get(key, [])
+            if isinstance(alias, list):
+                opt_arg_strs = alias + opt_arg_strs
+
+            elif isinstance(alias, str):
+                opt_arg_strs = [alias] + opt_arg_strs
+
+            else:
+                raise ValueError('alias value can be either a list of'
+                                 f' strings or a string! (is {alias})')
+
+        kwargs = extra.copy()
+
         if action == 'store':
-            parser.add_argument('--' + option.replace('_', '-'),
+            if (('metavar' not in kwargs) and (choices is None)):
+                kwargs['metavar'] = vtype.__name__.upper()
+
+            parser.add_argument(*opt_arg_strs,
                                 type=vtype,
                                 action=action, dest=key, choices=choices,
-                                default=val, help=msg + dhelp, **extra)
+                                default=val, help=msg + dhelp, **kwargs)
         elif action is not None:
-            parser.add_argument('--' + option.replace('_', '-'),
+            parser.add_argument(*opt_arg_strs,
                                 action=action, dest=key,
-                                default=val, help=msg, **extra)
+                                default=val, help=msg, **kwargs)
 
         else:
             parser.add_argument(option, help=msg, **extra)
