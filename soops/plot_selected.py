@@ -194,8 +194,25 @@ def get_legend_items(selected, styles, used=None, format_labels=None):
 
     return lines, labels
 
-def add_legend(ax, lines, labels, per_parameter=False, loc='best',
-               fontsize=None, frame_alpha=0.5, **kwargs):
+def _apply_max_labels(lines, labels, max_labels):
+    if max_labels is None:
+        return lines, labels
+
+    new_lines, new_labels = [], []
+    for plines, plabels in zip(lines, labels):
+        num = len(plines)
+        if num > max_labels:
+            iis = np.linspace(0, num - 1, max_labels).astype(int)
+            plines = [plines[ii] for ii in iis]
+            plabels = [plabels[ii] for ii in iis]
+        new_lines.append(plines)
+        new_labels.append(plabels)
+
+    return new_lines, new_labels
+
+def add_legend(ax, lines, labels, per_parameter=False, max_legend_labels=None,
+               loc='best', fontsize=None, frame_alpha=0.5, **kwargs):
+    lines, labels = _apply_max_labels(lines, labels, max_legend_labels)
 
     if per_parameter:
         if not isinstance(loc, list):
@@ -220,7 +237,7 @@ def add_legend(ax, lines, labels, per_parameter=False, loc='best',
 
 def plot_selected(ax, df, column, selected, compares, styles,
                   format_labels=None, xaxis=None, legend_kwargs=None,
-                  make_legend=True, **plot_kwargs):
+                  make_legend=True, max_legend_labels=None, **plot_kwargs):
     if ax is None:
         _, ax = plt.subplots()
 
@@ -243,7 +260,8 @@ def plot_selected(ax, df, column, selected, compares, styles,
     lines, labels = get_legend_items(selected, styles, used=used,
                                      format_labels=format_labels)
     if make_legend:
-        add_legend(ax, lines, labels, **legend_kwargs)
+        add_legend(ax, lines, labels, max_legend_labels=max_legend_labels,
+                   **legend_kwargs)
         out = ax
 
     else:
