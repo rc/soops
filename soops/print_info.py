@@ -10,6 +10,7 @@ import re
 import pandas as pd
 
 from soops.base import output, import_file
+from soops.cliargs import normalize_opt_args
 
 def collect_keys(run_cmd, opt_args, omit=()):
     keys = set(re.findall(r'\{(.+?)\}', run_cmd))
@@ -55,6 +56,8 @@ def print_info(options):
     if hasattr(run_mod, 'get_run_info'):
         (run_cmd, opt_args, output_dir_key,
          _is_finished) = run_mod.get_run_info()
+
+        opt_args, defaults, nonhash_pars = normalize_opt_args(opt_args)
 
     else:
         output('no get_run_info() in {}, exiting'.format(options.run_mod))
