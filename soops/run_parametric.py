@@ -16,6 +16,7 @@ from dask.distributed import as_completed, Client, LocalCluster
 
 from soops.parsing import parse_as_dict
 from soops.base import output, import_file, product, Struct
+from soops.cliargs import normalize_opt_args
 from soops.ioutils import ensure_path, save_options, locate_files
 from soops.print_info import collect_keys
 from soops.timing import get_timestamp
@@ -232,18 +233,7 @@ def run_parametric(options):
         (run_cmd, opt_args, output_dir_key,
          _is_finished) = run_mod.get_run_info()
 
-        defaults = {}
-        nonhash_pars = []
-        if isinstance(opt_args, tuple):
-            if len(opt_args) == 2:
-                opt_args, defaults = opt_args
-
-            else:
-                opt_args, defaults, nonhash_pars = opt_args
-
-        if isinstance(opt_args, list):
-            # '--option={--option}' -> '--option' : '--option={--option}'
-            opt_args = {item.split('=')[0] : item for item in opt_args}
+        opt_args, defaults, nonhash_pars = normalize_opt_args(opt_args)
 
     else:
         output('no get_run_info() in {}, exiting'.format(options.run_mod))
