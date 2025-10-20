@@ -140,3 +140,23 @@ def build_opt_args(arg_conf,
         out = (out, defaults)
 
     return out
+
+def normalize_opt_args(opt_args):
+    """
+    Normalize optional arguments, return default values and non-hash arguments
+    list.
+    """
+    defaults = {}
+    nonhash_pars = []
+    if isinstance(opt_args, tuple):
+        if len(opt_args) == 2:
+            opt_args, defaults = opt_args
+
+        else:
+            opt_args, defaults, nonhash_pars = opt_args
+
+    if isinstance(opt_args, list):
+        # '--option={--option}' -> '--option' : '--option={--option}'
+        opt_args = {item.split('=')[0] : item for item in opt_args}
+
+    return opt_args, defaults, nonhash_pars
