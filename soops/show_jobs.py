@@ -58,9 +58,10 @@ def get_job_info(job):
     except ValueError:
         ii = cmdline.index('-o')
 
-    aux = [ii for ii in job.info['cmdline'] if 'output_dir' in ii][0]
-    run_options = parse_as_dict(aux, free_word=True)
-    odir = run_options['output_dir'].strip(op.sep).replace('%s', '')
+    from soops.run_parametric import parse_args as pa
+    job_options = pa(args=cmdline[2:])
+    conf = parse_as_dict(job_options.conf, free_word=True)
+    odir = conf['output_dir'].strip(op.sep).replace('%s', '')
 
     inodir = partial(op.join, job.info['cwd'])
 
