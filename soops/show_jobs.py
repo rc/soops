@@ -8,10 +8,11 @@ Examples
 - Print jobs information::
 
   soops-jobs -v
+  soops-jobs -vv
 
 - Follow the output of the last modified output log in the bash shell::
 
-  tail -f $(soops-jobs -vv | tail -1)
+  tail -f $(soops-jobs -vvv | tail -1)
 """
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import psutil
@@ -85,6 +86,7 @@ def get_job_info(job):
         apdf=apdf,
         last_dir=last_dir,
         log_file=log_file,
+        job_options=Struct(vars(job_options)),
     )
 
     return info
@@ -95,7 +97,12 @@ def print_jobs_info(jobs, infos, options):
             print(f'job: {job.pid} ({job.status()})')
             print('output in:', info.job_output_dir)
             print(f'finished: {info.n_finished}/{info.num}')
+
             if options.verbose > 1:
+                print('options:')
+                print(info.job_options)
+
+            if options.verbose > 2:
                 print('last log:')
                 print(info.log_file)
 
