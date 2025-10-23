@@ -96,6 +96,39 @@ def get_contracts(contract_seqs, par_seqs, key_order):
 
     return contracts
 
+def get_study_conf(conf, study=None, extra_conf=None):
+    if op.isfile(conf):
+        import configparser
+        config = configparser.ConfigParser(
+            interpolation=configparser.ExtendedInterpolation(),
+        )
+
+        config.read(conf)
+        skeys = list(config.keys())
+        skeys.pop(skeys.index('DEFAULT'))
+
+        if study is None:
+            skey = skeys[0]
+
+        else:
+            if study not in skeys:
+                raise ValueError(
+                    f'no {study} key in study configuration file {conf}!'
+                )
+
+            skey = study
+
+        dconf = _get_dict_from_cfg(config, skey)
+
+    else:
+        dconf = parse_as_dict(conf, free_word=True)
+        config, skeys = None, []
+
+    if extra_conf is not None:
+        dconf.update(extra_conf)
+
+    return dconf, config, skeys
+
 def _get_iset(path):
     iset = int(op.basename(path).split('-')[0])
     return iset
@@ -246,32 +279,8 @@ def run_parametric(options):
     else:
         is_finished = _is_finished
 
-    if op.isfile(options.conf):
-        import configparser
-        config = configparser.ConfigParser(
-            interpolation=configparser.ExtendedInterpolation(),
-        )
-
-        config.read(options.conf)
-        skeys = list(config.keys())
-        skeys.pop(skeys.index('DEFAULT'))
-
-        if options.study is None:
-            skey = skeys[0]
-
-        else:
-            if options.study not in skeys:
-                raise ValueError('no {} key in study configuration file {}!'
-                                 .format(options.study, options.conf))
-
-            skey = options.study
-
-        dconf = _get_dict_from_cfg(config, skey)
-
-    else:
-        dconf = parse_as_dict(options.conf, free_word=True)
-
-    dconf.update(options.extra_conf)
+    dconf, config, skeys = get_study_conf(options.conf, study=options.study,
+                                          extra_conf=options.extra_conf)
 
     seq_keys = [key for key, val in dconf.items()
                 if isinstance(val, str) and

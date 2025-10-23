@@ -8,10 +8,11 @@ Examples
 - Print jobs information::
 
   soops-jobs -v
+  soops-jobs -vv
 
 - Follow the output of the last modified output log in the bash shell::
 
-  tail -f $(soops-jobs -vv | tail -1)
+  tail -f $(soops-jobs -vvv | tail -1)
 """
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import psutil
@@ -22,8 +23,9 @@ from functools import partial
 
 import pandas as pd
 
-from soops.base import Struct
-from soops.parsing import parse_as_dict
+from soops.base import import_file, Struct
+from soops.run_parametric import parse_args as pa
+from soops.run_parametric import get_study_conf
 
 helps = {
     'verbose'
@@ -58,33 +60,53 @@ def get_job_info(job):
     except ValueError:
         ii = cmdline.index('-o')
 
-    aux = [ii for ii in job.info['cmdline'] if 'output_dir' in ii][0]
-    run_options = parse_as_dict(aux, free_word=True)
-    odir = run_options['output_dir'].strip(op.sep).replace('%s', '')
-
     inodir = partial(op.join, job.info['cwd'])
 
-    output_dir = cmdline[ii+1]
-    pfilename = inodir(output_dir, 'all_parameters.csv')
-    apdf = pd.read_csv(pfilename, index_col='pkey')
-    num = len(apdf)
-    n_finished = apdf['finished'].sum()
+    try:
+        job_options = pa(args=cmdline[2:])
+        run_mod = import_file(inodir(job_options.run_mod))
+        (run_cmd, opt_args, output_dir_key, _is_finished) = run_mod.get_run_info()
 
-    subdirs = [inodir(odir, ii) for ii in os.listdir(inodir(odir))
-               if op.isdir(inodir(odir, ii))]
-    last_dir = max(subdirs, key=op.getmtime)
-    log_file = op.join(last_dir, 'output_log.txt')
-    if not op.exists(log_file):
-        log_file = ''
+        conf, _, _ = get_study_conf(inodir(job_options.conf), study=job_options.study,
+                                    extra_conf=job_options.extra_conf)
+        odir = conf[output_dir_key].strip(op.sep).replace('%s', '')
 
-    info = Struct(
-        job_output_dir=odir,
-        num=num,
-        n_finished=n_finished,
-        apdf=apdf,
-        last_dir=last_dir,
-        log_file=log_file,
-    )
+        output_dir = cmdline[ii+1]
+        pfilename = inodir(output_dir, 'all_parameters.csv')
+        apdf = pd.read_csv(pfilename, index_col='pkey')
+        num = len(apdf)
+        n_finished = apdf['finished'].sum()
+
+        subdirs = [inodir(odir, ii) for ii in os.listdir(inodir(odir))
+                   if op.isdir(inodir(odir, ii))]
+        last_dir = max(subdirs, key=op.getmtime)
+        log_file = op.join(last_dir, 'output_log.txt')
+        if not op.exists(log_file):
+            log_file = ''
+
+    except:
+        info = Struct(
+            job_working_dir=job.info['cwd'],
+            job_output_dir='unknown',
+            num=-1,
+            n_finished=-1,
+            apdf=None,
+            last_dir=None,
+            log_file=None,
+            job_options=Struct(),
+        )
+
+    else:
+        info = Struct(
+            job_working_dir=job.info['cwd'],
+            job_output_dir=odir,
+            num=num,
+            n_finished=n_finished,
+            apdf=apdf,
+            last_dir=last_dir,
+            log_file=log_file,
+            job_options=Struct(vars(job_options)),
+        )
 
     return info
 
@@ -92,14 +114,21 @@ def print_jobs_info(jobs, infos, options):
     if options.verbose:
         for job, info in zip(jobs, infos):
             print(f'job: {job.pid} ({job.status()})')
+            print('working directory:', info.job_working_dir)
             print('output in:', info.job_output_dir)
             print(f'finished: {info.n_finished}/{info.num}')
+
             if options.verbose > 1:
+                print('options:')
+                print(info.job_options)
+
+            if options.verbose > 2:
                 print('last log:')
                 print(info.log_file)
 
     else:
-        print([(job.pid, job.status()) for job in jobs])
+        for job in jobs:
+            print(job.pid, job.status())
 
 def show_jobs(options):
     jobs = find_jobs()
