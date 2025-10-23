@@ -114,6 +114,7 @@ def print_jobs_info(jobs, infos, options):
     if options.verbose:
         for job, info in zip(jobs, infos):
             print(f'job: {job.pid} ({job.status()})')
+            print('working directory:', info.job_working_dir)
             print('output in:', info.job_output_dir)
             print(f'finished: {info.n_finished}/{info.num}')
 
@@ -126,7 +127,8 @@ def print_jobs_info(jobs, infos, options):
                 print(info.log_file)
 
     else:
-        print([(job.pid, job.status()) for job in jobs])
+        for job in jobs:
+            print(job.pid, job.status())
 
 def show_jobs(options):
     jobs = find_jobs()
