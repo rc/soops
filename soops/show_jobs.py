@@ -23,8 +23,9 @@ from functools import partial
 
 import pandas as pd
 
-from soops.base import Struct
-from soops.parsing import parse_as_dict
+from soops.base import import_file, Struct
+from soops.run_parametric import parse_args as pa
+from soops.run_parametric import get_study_conf
 
 helps = {
     'verbose'
@@ -59,35 +60,53 @@ def get_job_info(job):
     except ValueError:
         ii = cmdline.index('-o')
 
-    from soops.run_parametric import parse_args as pa
-    job_options = pa(args=cmdline[2:])
-    conf = parse_as_dict(job_options.conf, free_word=True)
-    odir = conf['output_dir'].strip(op.sep).replace('%s', '')
-
     inodir = partial(op.join, job.info['cwd'])
 
-    output_dir = cmdline[ii+1]
-    pfilename = inodir(output_dir, 'all_parameters.csv')
-    apdf = pd.read_csv(pfilename, index_col='pkey')
-    num = len(apdf)
-    n_finished = apdf['finished'].sum()
+    try:
+        job_options = pa(args=cmdline[2:])
+        run_mod = import_file(inodir(job_options.run_mod))
+        (run_cmd, opt_args, output_dir_key, _is_finished) = run_mod.get_run_info()
 
-    subdirs = [inodir(odir, ii) for ii in os.listdir(inodir(odir))
-               if op.isdir(inodir(odir, ii))]
-    last_dir = max(subdirs, key=op.getmtime)
-    log_file = op.join(last_dir, 'output_log.txt')
-    if not op.exists(log_file):
-        log_file = ''
+        conf, _, _ = get_study_conf(inodir(job_options.conf), study=job_options.study,
+                                    extra_conf=job_options.extra_conf)
+        odir = conf[output_dir_key].strip(op.sep).replace('%s', '')
 
-    info = Struct(
-        job_output_dir=odir,
-        num=num,
-        n_finished=n_finished,
-        apdf=apdf,
-        last_dir=last_dir,
-        log_file=log_file,
-        job_options=Struct(vars(job_options)),
-    )
+        output_dir = cmdline[ii+1]
+        pfilename = inodir(output_dir, 'all_parameters.csv')
+        apdf = pd.read_csv(pfilename, index_col='pkey')
+        num = len(apdf)
+        n_finished = apdf['finished'].sum()
+
+        subdirs = [inodir(odir, ii) for ii in os.listdir(inodir(odir))
+                   if op.isdir(inodir(odir, ii))]
+        last_dir = max(subdirs, key=op.getmtime)
+        log_file = op.join(last_dir, 'output_log.txt')
+        if not op.exists(log_file):
+            log_file = ''
+
+    except:
+        info = Struct(
+            job_working_dir=job.info['cwd'],
+            job_output_dir='unknown',
+            num=-1,
+            n_finished=-1,
+            apdf=None,
+            last_dir=None,
+            log_file=None,
+            job_options=Struct(),
+        )
+
+    else:
+        info = Struct(
+            job_working_dir=job.info['cwd'],
+            job_output_dir=odir,
+            num=num,
+            n_finished=n_finished,
+            apdf=apdf,
+            last_dir=last_dir,
+            log_file=log_file,
+            job_options=Struct(vars(job_options)),
+        )
 
     return info
 
