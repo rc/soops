@@ -471,6 +471,7 @@ def run_parametric(options):
 
             if new:
                 iseq += 1
+                pkeys.add(pkey)
 
         else:
             call = client.submit(lambda: None)
