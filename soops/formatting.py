@@ -23,6 +23,14 @@ fragments = {
 \begin{{document}}
 """,
     #
+    'begin-document-packages' : r"""
+\documentclass[{options}]{{article}}
+
+{packages}
+
+\begin{{document}}
+""",
+    #
     'end-document' : r"""
 \end{document}
     """,
