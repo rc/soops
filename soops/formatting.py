@@ -106,7 +106,7 @@ def format_float_latex(val, prec, in_math=False, mul_one=True):
                 out = r'{} \cdot 10^{{{}}}'.format(*iexp)
 
         else:
-            aux = r'{{:{}}}'.format(prec).format(val).replace(' ', '\enspace ')
+            aux = r'{{:{}}}'.format(prec).format(val).replace(' ', r'\enspace ')
             out = r'{}'.format(aux)
 
         if not in_math:
@@ -158,7 +158,7 @@ def itemize_latex(items):
     """
     out = fragments['env'].format(
         env='itemize',
-        text='\n'.join('\item ' + item for item in items)
+        text='\n'.join(r'\item ' + item for item in items)
     )
     return out
 
