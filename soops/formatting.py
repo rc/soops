@@ -1,6 +1,7 @@
 import os.path as op
 from functools import partial
 from math import isfinite
+from textwrap import dedent, fill, indent, shorten, wrap  # noqa
 
 import numpy as np
 import pandas as pd
@@ -19,6 +20,14 @@ fragments = {
 \usepackage{{amsmath}}
 \usepackage{{a4wide}}
 \usepackage{{multirow}}
+
+\begin{{document}}
+""",
+    #
+    'begin-document-packages' : r"""
+\documentclass[{options}]{{article}}
+
+{packages}
 
 \begin{{document}}
 """,
@@ -97,7 +106,7 @@ def format_float_latex(val, prec, in_math=False, mul_one=True):
                 out = r'{} \cdot 10^{{{}}}'.format(*iexp)
 
         else:
-            aux = r'{{:{}}}'.format(prec).format(val).replace(' ', '\enspace ')
+            aux = r'{{:{}}}'.format(prec).format(val).replace(' ', r'\enspace ')
             out = r'{}'.format(aux)
 
         if not in_math:
@@ -149,7 +158,7 @@ def itemize_latex(items):
     """
     out = fragments['env'].format(
         env='itemize',
-        text='\n'.join('\item ' + item for item in items)
+        text='\n'.join(r'\item ' + item for item in items)
     )
     return out
 
@@ -218,8 +227,9 @@ def format_next(text, new_text, pos, can_newline, width, ispaces):
 
     return text, pos, can_newline
 
-def typeset_to_indent(txt, indent, width):
-    if not len(txt): return txt
+def typeset_to_indent(txt, indent, width): # noqa
+    if not len(txt):
+        return txt
 
     txt_lines = txt.strip().split('\n')
     ispaces = ' ' * indent
