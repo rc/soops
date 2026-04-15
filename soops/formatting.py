@@ -1,6 +1,7 @@
 import os.path as op
 from functools import partial
 from math import isfinite
+from textwrap import dedent, fill, indent, shorten, wrap  # noqa
 
 import numpy as np
 import pandas as pd
@@ -226,8 +227,9 @@ def format_next(text, new_text, pos, can_newline, width, ispaces):
 
     return text, pos, can_newline
 
-def typeset_to_indent(txt, indent, width):
-    if not len(txt): return txt
+def typeset_to_indent(txt, indent, width): # noqa
+    if not len(txt):
+        return txt
 
     txt_lines = txt.strip().split('\n')
     ispaces = ' ' * indent
