@@ -57,7 +57,13 @@ def split_options(options, split_keys, recur=False):
 
     new_options = options.copy()
     for okey, nkeys in split_keys.items():
-        vals = new_options.pop(okey)
+        vals = new_options[okey]
+        if vals and isinstance(vals, dict):
+            new_options.pop(okey)
+
+        else:
+            continue
+
         if nkeys is None:
             if recur:
                 new_options.update(flatten_dict(vals, prefix=okey + '__',
