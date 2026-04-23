@@ -471,8 +471,11 @@ def debug_on_error():
     try:
         from IPython.core import ultratb
 
-        except_hook = ultratb.FormattedTB(mode='Verbose',
-                                          color_scheme='Linux', call_pdb=1)
+        except_hook = ultratb.FormattedTB(
+            mode='Verbose',
+            theme_name='linux',
+            call_pdb=True,
+        )
 
     except ImportError:
         def except_hook(etype, value, tb):
