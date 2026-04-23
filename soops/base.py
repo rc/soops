@@ -271,6 +271,19 @@ def flatten_dict(adict, prefix='', sep='__'):
 
     return out
 
+def unflatten_dict(adict, prefix='', sep='__'):
+    out = {}
+    for key, val in adict.items():
+        sub_keys = key.lstrip(prefix).split(sep)
+        sub = out
+
+        for sub_key in sub_keys[:-1]:
+            sub = sub.setdefault(sub_key, {})
+
+        sub[sub_keys[-1]] = val
+
+    return out
+
 def import_file(filename, package_name=None, can_reload=True):
     """
     Import a file as a module. The module is explicitly reloaded to
