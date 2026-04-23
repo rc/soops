@@ -449,7 +449,6 @@ def debug(frame=None, frames_back=1):
             for _ in range(frames_back):
                 if frame is not None:
                     frame = frame.f_back
-                print(frame)
 
         ipdb.set_trace(frame)
 
