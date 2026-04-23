@@ -363,7 +363,7 @@ def run_parametric(options):
     for fname in locate_files('soops-parameters.csv', root_dir=root_dir):
         if op.exists(fname):
             try:
-                df = pd.read_csv(fname, index_col='pkey')
+                df = pd.read_csv(fname, index_col='pkey', na_filter=False)
 
             except pd.errors.EmptyDataError:
                 continue
@@ -373,6 +373,7 @@ def run_parametric(options):
 
     if len(dfs):
         apdf = pd.concat(dfs)
+        apdf['iset'] = apdf['iset'].map(lambda x: f'{x:03d}')
         iseq = apdf[output_dir_key].apply(_get_iset).max() + 1
 
     else:
