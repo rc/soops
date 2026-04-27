@@ -51,14 +51,18 @@ def load_csv(filename, orient='list', rdata=None):
 def load_soops_parameters(filename, orient='list', rdata=None):
     return load_csv(filename, orient='index')[0]
 
-def split_options(options, split_keys, recur=False):
+def split_options(options, split_keys, recur=False, keep_original=False):
+    """
+    Split options included in `split_keys`. The original options are left
+    intact if `keep_original` is True.
+    """
     if not isinstance(split_keys, dict):
         split_keys = {key : None for key in split_keys}
 
     new_options = options.copy()
     for okey, nkeys in split_keys.items():
         vals = new_options[okey]
-        if vals and isinstance(vals, dict):
+        if (vals and isinstance(vals, dict)) and (not keep_original):
             new_options.pop(okey)
 
         else:
@@ -79,10 +83,12 @@ def split_options(options, split_keys, recur=False):
 
     return new_options
 
-def load_split_options(filename, split_keys=None, recur=False, rdata=None):
+def load_split_options(filename, split_keys=None, recur=False,
+                       keep_original=False, rdata=None):
     options = load_options(filename)
     if split_keys is not None:
-        options = split_options(options, split_keys=split_keys, recur=recur)
+        options = split_options(options, split_keys=split_keys, recur=recur,
+                                keep_original=keep_original)
     return options
 
 def filter_dict(data, key_prefix, strip_prefix=True):
