@@ -154,6 +154,9 @@ def load_options(filename):
             ii += 3
             break
 
+    else:
+        ii = 0
+
     raw_options = data[ii:]
     options = {}
     for opt in raw_options:
