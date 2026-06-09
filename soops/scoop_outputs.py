@@ -100,14 +100,20 @@ def filter_dict(data, key_prefix, strip_prefix=True):
                  if key.startswith(key_prefix))
     return out
 
-def apply_scoops(info, directories, debug_mode=False):
+def apply_scoops(info, directories, debug_mode=False,
+                 df0=None, mdf0=None, par_keys0=None):
     if not len(info):
         return pd.DataFrame({}), pd.DataFrame({}), None
 
     data = []
     metadata = []
     par_keys = set()
+
+    odirs0 = set(df0['output_dir']) if df0 is not None else set()
     for idir, directory in enumerate(directories):
+        if op.dirname(directory) in odirs0:
+            continue
+
         output('directory {}: {}'.format(idir, directory))
 
         name0 = info[0][0]
@@ -197,6 +203,15 @@ def apply_scoops(info, directories, debug_mode=False):
 
     df = pd.DataFrame(data)
     mdf = pd.DataFrame(metadata)
+
+    if df0 is not None:
+        df = pd.concat((df0, df))
+
+    if mdf0 is not None:
+        mdf = pd.concat((mdf0, mdf))
+
+    if par_keys0 is not None:
+        par_keys.update(par_keys0)
 
     return df, mdf, par_keys
 
@@ -291,6 +306,10 @@ helps = {
     'results' : 'results file name [default: <output_dir>/results.h5]',
     'no_csv' : 'do not save results as CSV (use only HDF5)',
     'reuse' : 'reuse previously scooped results file',
+    'update' :
+    """update previously scooped results file with results in new directories.
+       Results in previously existing directories are reused (as with -r)
+       without any contents checking.""",
     'write' : 'write results files even when results were loaded using '
     '--reuse option',
     'write_after_plugins' :
@@ -336,9 +355,13 @@ def parse_args(args=None):
     parser.add_argument('--no-csv',
                         action='store_false', dest='save_csv',
                         default=True, help=helps['no_csv'])
-    parser.add_argument('-r', '--reuse',
-                        action='store_true', dest='reuse',
-                        default=False, help=helps['reuse'])
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-r', '--reuse',
+                       action='store_true', dest='reuse',
+                       default=False, help=helps['reuse'])
+    group.add_argument('-u', '--update',
+                       action='store_true', dest='update',
+                       default=False, help=helps['update'])
     parser.add_argument('--write',
                         action='store_true', dest='write',
                         default=False, help=helps['write'])
@@ -391,10 +414,29 @@ def scoop_outputs(options):
 
     scoop_mod = import_file(options.scoop_mod)
 
-    if (not options.reuse
-        or not (op.exists(options.results) and op.isfile(options.results))):
+    new_results = False
+    if (options.update or (not options.reuse)):
         new_results = True
 
+    if (not (op.exists(options.results) and op.isfile(options.results))):
+        new_results = True
+        options.update = options.reuse = False
+
+    if options.update or options.reuse:
+        with pd.HDFStore(options.results, mode='r') as store:
+            df = store.get('df')
+            mdf = store.get('mdf')
+            par_keys = set(store.get('par_keys').to_list())
+            std_keys = ('/df', '/mdf', '/par_keys')
+            user_keys = set(store.keys()).difference(std_keys)
+            output('user data:')
+            output(user_keys)
+
+    else:
+        df = mdf = None
+        par_keys = set()
+
+    if new_results:
         if hasattr(scoop_mod, 'get_scoop_info'):
             scoop_info = scoop_mod.get_scoop_info()
 
@@ -404,7 +446,8 @@ def scoop_outputs(options):
             return
 
         df, mdf, par_keys = apply_scoops(scoop_info, options.directories,
-                                         options.debug)
+                                         options.debug,
+                                         df0=df, mdf0=mdf, par_keys0=par_keys)
 
         if options.filter is not None:
             idf = [ii for ii, rfiles in df['rfiles'].items()
@@ -416,17 +459,6 @@ def scoop_outputs(options):
                     if data_row in idf]
             mdf = mdf.iloc[imdf]
             mdf.index = np.arange(len(mdf))
-
-    else:
-        new_results = False
-        with pd.HDFStore(options.results, mode='r') as store:
-            df = store.get('df')
-            mdf = store.get('mdf')
-            par_keys = set(store.get('par_keys').to_list())
-            std_keys = ('/df', '/mdf', '/par_keys')
-            user_keys = set(store.keys()).difference(std_keys)
-            output('user data:')
-            output(user_keys)
 
     output('data keys:')
     output(df.keys())
