@@ -205,10 +205,10 @@ def apply_scoops(info, directories, debug_mode=False,
     mdf = pd.DataFrame(metadata)
 
     if df0 is not None:
-        df = pd.concat((df0, df))
+        df = pd.concat((df0, df), ignore_index=True)
 
     if mdf0 is not None:
-        mdf = pd.concat((mdf0, mdf))
+        mdf = pd.concat((mdf0, mdf), ignore_index=True)
 
     if par_keys0 is not None:
         par_keys.update(par_keys0)
