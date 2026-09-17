@@ -744,6 +744,18 @@ The ``--query`` option can be used to limit the search, for example::
 
   $ soops-find output/study -q "num==1000 & repeat==20 & seed==12345"
 
+Additional Utilities
+--------------------
+
+- dict-like classes with attribute access, various utilities: `soops.base
+  <https://github.com/rc/soops/blob/HEAD/soops/base.py>`_
+- Command line options made simple: `soops.cliargs
+  <https://github.com/rc/soops/blob/HEAD/soops/cliargs.py>`_
+- LaTeX report generation utilities: `soops.formatting
+  <https://github.com/rc/soops/blob/HEAD/soops/formatting.py>`_
+- Timer class: `soops.timing
+  <https://github.com/rc/soops/blob/HEAD/soops/timing.py>`_
+
 See Also
 --------
 
