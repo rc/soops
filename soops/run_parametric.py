@@ -12,7 +12,6 @@ from datetime import datetime
 
 import numpy as np
 import pandas as pd
-from dask.distributed import as_completed, Client, LocalCluster
 
 from soops.parsing import parse_as_dict
 from soops.base import output, import_file, product, Struct
@@ -20,6 +19,7 @@ from soops.cliargs import normalize_opt_args
 from soops.ioutils import ensure_path, save_options, locate_files
 from soops.print_info import collect_keys
 from soops.timing import get_timestamp
+from soops.runners import Runner
 
 def make_key_list(key, obj):
     return ([(ii, key, item) for ii, item in enumerate(obj)]
@@ -150,6 +150,9 @@ helps = {
     'the number of dask workers [default: %(default)s]',
     'cluster_kwargs' :
     'additional keyword arguments for LocalCluster [default:  %(default)s]',
+    'runner' :
+    """way to launch the runs. If not given, 'dask' is tried first,
+       with 'threadpool' as the fallback option. [default: %(default)s]""",
     'run_function' :
     'function for running the parameterized command [default: %(default)s]',
     'timeout' :
@@ -198,6 +201,9 @@ def parse_args(args=None):
                         action='store', dest='cluster_kwargs',
                         default='threads_per_worker=1',
                         help=helps['cluster_kwargs'])
+    parser.add_argument('--runner', action='store', type=str,
+                        dest='runner', choices=('dask', 'threadpool'),
+                        default=None, help=helps['runner'])
     parser.add_argument('--run-function', action='store', dest='run_function',
                         choices=['subprocess.run', 'psutil.Popen', 'os.system'],
                         default='subprocess.run', help=helps['run_function'])
@@ -237,6 +243,13 @@ def parse_args(args=None):
 
     options.extra_conf = parse_as_dict(options.extra_conf, free_word=True)
     options.cluster_kwargs = parse_as_dict(options.cluster_kwargs)
+
+    if options.runner is None:
+        from soops.runners import Client
+        options.runner = 'dask' if Client is not None else 'threadpool'
+
+    if options.runner == 'threadpool':
+        options.cluster_kwargs.pop('threads_per_worker', 0)
 
     if options.generate_pars is not None:
         if ('=' in options.generate_pars) or (':' in options.generate_pars):
@@ -388,9 +401,8 @@ def run_parametric(options):
 
     output('number of parameter sets:', count)
 
-    cluster = LocalCluster(n_workers=options.n_workers,
-                           **options.cluster_kwargs)
-    client = Client(cluster)
+    output(f'runninng with {options.runner}')
+    runner = Runner.any_from_options(options)
 
     calls = []
     for _all_pars in product(*par_seqs, contracts=contracts):
@@ -448,18 +460,17 @@ def run_parametric(options):
             output(cmd)
 
             if options.dry_run:
-                call = client.submit(lambda: None)
+                call = runner.submit(lambda: None)
 
             elif options.run_function == 'subprocess.run':
-                call = client.submit(subprocess.run, cmd,
-                                     shell=True, pure=False)
+                call = runner.submit(subprocess.run, cmd,
+                                     shell=True)
 
             elif options.run_function == 'psutil.Popen':
-                call = client.submit(run_with_psutil, cmd, options,
-                                     pure=False)
+                call = runner.submit(run_with_psutil, cmd, options)
 
             else:
-                call = client.submit(os.system, cmd, pure=False)
+                call = runner.submit(os.system, cmd)
 
             call.iset = iset
             call.it = it
@@ -475,7 +486,7 @@ def run_parametric(options):
                 pkeys.add(pkey)
 
         else:
-            call = client.submit(lambda: None)
+            call = runner.submit(lambda: None)
             call.iset = iset
             call.it = it
             call.pkey = pkey
@@ -488,7 +499,7 @@ def run_parametric(options):
     pfilename = op.join(options.output_dir, 'all_parameters.csv')
     apdf.to_csv(pfilename, mode='w', index_label='pkey')
 
-    for call in as_completed(calls):
+    for call in runner.as_completed(calls):
         dtime = datetime.now()
         output(call.iset)
         output(call.it)
@@ -511,12 +522,10 @@ def run_parametric(options):
                        index_label='pkey')
             apdf.to_csv(pfilename, mode='w', index_label='pkey')
 
-    client.close()
-
     if options.shell:
         from soops.base import shell; shell()
 
-    cluster.close()
+    runner.close()
 
 def main():
     options = parse_args()
