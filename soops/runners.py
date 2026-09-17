@@ -1,6 +1,9 @@
-from dask.distributed import Client, LocalCluster
-
 from concurrent.futures import ThreadPoolExecutor
+try:
+    from dask.distributed import Client, LocalCluster
+
+except ImportError:
+    Client, LocalCluster = None, None
 
 from soops.base import load_classes, Struct
 
