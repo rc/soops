@@ -15,6 +15,7 @@ import pandas as pd
 from soops.base import output, product, flatten_dict, import_file, Struct
 from soops.parsing import parse_as_dict, parse_as_list
 from soops.ioutils import load_options, locate_files, ensure_path
+from soops.timing import Timer
 
 def load_array(filename, key='array', columns=None, load_kwargs={}, rdata=None):
     is_npy = filename.endswith('.npy')
@@ -109,6 +110,8 @@ def apply_scoops(info, directories, debug_mode=False,
     metadata = []
     par_keys = set()
 
+    timer = Timer()
+
     odirs0 = set(df0['output_dir']) if df0 is not None else set()
     for idir, directory in enumerate(directories):
         if op.dirname(directory) in odirs0:
@@ -150,6 +153,7 @@ def apply_scoops(info, directories, debug_mode=False,
                 else:
                     paths = None
 
+                timer.start()
                 try:
                     if paths is None:
                         out = fun(path, rdata=rdata)
@@ -196,6 +200,7 @@ def apply_scoops(info, directories, debug_mode=False,
                     metadata.append(pd.Series(rmetadata))
                     if has_parameters:
                         par_keys.update(out.keys())
+                output(f'- scooped in {timer.stop()} s')
 
             rdata['time'] = datetime.utcnow()
 

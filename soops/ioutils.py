@@ -164,10 +164,10 @@ def load_options(filename):
         key = aux[0].strip()
         sval = ':'.join([ii.strip() for ii in aux[1:]])
         try:
-            val = parse_as_dict(sval)
+            val = eval(sval)
         except:
             try:
-                val = eval(sval)
+                val = parse_as_dict(sval)
             except:
                 val = sval
 
