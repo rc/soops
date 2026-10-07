@@ -21,7 +21,7 @@ cmd_scoop0 = r"""{soops_dir}/examples/monty_hall.py {output_dir}/study0/ -s rdir
 
 cmd_scoop1 = r"""{soops_dir}/examples/monty_hall.py {output_dir}/study1/ -s rdir -o {output_dir}/study1 --omit-plugins=show_figures --plugin-args=plot_win_rates={{colormap_name='tab10:kind=qualitative'}}"""
 
-cmd_info = r"""{soops_dir}/examples/monty_hall.py -e {output_dir}/study0/000-5adf4124d4e3e519e6eb49f2f0992ee1"""
+cmd_info = r"""{soops_dir}/examples/monty_hall.py -e {output_dir}/study0/000-*"""
 
 cmd_find = r"""--query=num==1000&repeat==20&seed==12345 {output_dir}/study0"""
 

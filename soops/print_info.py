@@ -5,6 +5,7 @@ Get parametric study configuration information.
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import sys
 import os.path as op
+import glob
 import re
 
 import pandas as pd
@@ -71,7 +72,12 @@ def print_info(options):
             output('{:3d}: {}'.format(ik, key))
 
     else:
+        dirnames = []
         for dirname in options.explain:
+            expanded = glob.glob(dirname + op.sep)
+            dirnames.extend(expanded)
+
+        for dirname in dirnames:
             output(dirname)
             explain_dir(dirname, keys)
 
