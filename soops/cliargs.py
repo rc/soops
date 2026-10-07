@@ -100,6 +100,9 @@ def build_arg_parser(parser, arg_conf, aliases=None):
 def _get_opt_from_key(key):
     return '--' + key.replace('_', '-')
 
+def _get_no_opt_from_key(key):
+    return '--no-' + key.replace('_', '-')
+
 def build_opt_args(arg_conf,
                    omit=('--output-dir', '--plot-rc-params',
                          '--show', '--silent', '--shell', '--debug'),
@@ -124,7 +127,11 @@ def build_opt_args(arg_conf,
     for key, val in arg_conf.items():
         opt = _get_opt_from_key(key)
         if (opt not in omit) and (val[0] is not None):
-            if (val[0] is True) or (val[0] is False):
+            if val[0] is False:
+                out.append(f'{opt}')
+
+            elif val[0] is True:
+                opt = _get_no_opt_from_key(key)
                 out.append(f'{opt}')
 
             else:

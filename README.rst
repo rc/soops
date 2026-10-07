@@ -79,8 +79,8 @@ have a look at the `complete example script <soops/examples/monty_hall.py>`_.
 This is our script and its arguments::
 
   $ python soops/examples/monty_hall.py -h
-  usage: monty_hall.py [-h] [--switch] [--host {random,first}] [--num int]
-                       [--repeat int] [--seed int] [--plot-opts dict-like] [-n]
+  usage: monty_hall.py [-h] [--switch] [--host {random,first}] [--num INT]
+                       [--repeat INT] [--seed INT] [--plot-opts STR] [-n]
                        [--silent]
                        output_dir
 
@@ -98,14 +98,14 @@ This is our script and its arguments::
     --switch              if given, the contestant always switches the door,
                           otherwise never switches
     --host {random,first}
-                          the host strategy for opening doors
-    --num int             the number of rounds in a single simulation [default:
+                          the host strategy for opening doors [default: random]
+    --num INT             the number of rounds in a single simulation [default:
                           100]
-    --repeat int          the number of simulations [default: 5]
-    --seed int            if given, the random seed is fixed to the given value
-    --plot-opts dict-like
-                          matplotlib plot() options [default:
-                          "linewidth=3,alpha=0.5"]
+    --repeat INT          the number of simulations [default: 5]
+    --seed INT            if given, the random seed is fixed to the given value
+                          [default: None]
+    --plot-opts STR       matplotlib plot() options [default:
+                          linewidth=3,alpha=0.5]
     -n, --no-show         do not call matplotlib show()
     --silent              do not print messages to screen
 
@@ -155,6 +155,19 @@ describing the arguments of our script:
 
 .. code:: python
 
+   opts = so.Struct(
+       output_dir=(None, 'output directory'),
+       switch=(False, 'if given, the contestant always switches the door,'
+               ' otherwise never switches'),
+       host=(('random', 'first'), 'the host strategy for opening doors'),
+       num=(100, 'the number of rounds in a single simulation'),
+       repeat=(5, 'the number of simulations'),
+       seed=([None, 42], 'if given, the random seed is fixed to the given value'),
+       plot_opts=('linewidth=3,alpha=0.5', 'matplotlib plot() options'),
+       show=(True, 'do not call matplotlib show()', ),
+       silent=(False, 'do not print messages to screen'),
+   )
+
    def get_run_info():
        # script_dir is added by soops-run, it is the normalized path to
        # this script.
@@ -162,19 +175,8 @@ describing the arguments of our script:
        {python} {script_dir}/monty_hall.py {output_dir}
        """
        run_cmd = ' '.join(run_cmd.split())
-
-       # Arguments allowed to be missing in soops-run calls.
-       opt_args = {
-           '--num' : '--num={--num}',
-           '--repeat' : '--repeat={--repeat}',
-           '--switch' : '--switch',
-           '--host' : '--host={--host}',
-           '--seed' : '--seed={--seed}',
-           '--plot-opts' : '--plot-opts={--plot-opts}',
-           '--no-show' : '--no-show',
-           '--silent' : '--silent',
-       }
-
+       opt_args = so.build_opt_args(opts, omit=['--plot-opts'],
+                                    return_defaults=True)
        output_dir_key = 'output_dir'
        is_finished_basename = 'wins.png'
 
@@ -185,8 +187,10 @@ The `get_run_info()` functions should provide four items:
 #. A command to run given as a string, with the non-optional arguments and
    their values (if any) given as ``str.format()`` keys.
 
-#. A dictionary of optional arguments and their values (if any) given as
-   ``str.format()`` keys.
+#. A dictionary of optional arguments constructed using `so.build_opt_args()`
+   from `opts`. Note that `opts` data are used also to build automatically the
+   command line options in `parse_args()`, see `the example script
+   <soops/examples/monty_hall.py>`_.
 
 #. A special format key, that denotes the output directory argument of the
    command. Note that the script must have an argument allowing an output
@@ -267,59 +271,60 @@ This command runs our script using three dask workers (``-n 3`` option) and
 produces a directory for each parameter set::
 
   $ ls output/study/
-  000-7a6b546a625c2d37569346a286f2b2b6/  024-6f9810a492faf793b80de2ec32dec4b1/
-  001-1daf48cede910a9c7c700fb78ce3aa2d/  025-a4d05c2889189c4e086f9d6f56e1ba1d/
-  002-57c1271f4b9cbe00742e3c97e0c14e24/  026-67a251e1c40f65bae8bbf621c4e1a987/
-  003-2f828633fa9eefa8eb8b40873882247d/  027-9e3d30603d2b382256f62fdf17bc23ae/
-  004-24f370388496173d8e1d7a9e574262e0/  028-6ff18af0333367a65ed131d210078653/
-  005-7893091a6fedc4ccdf7d73d803a91687/  029-54d77d99e74402a043af583ac1e14c4e/
-  006-70132dc423f26c78f1d2e33f0607820c/  030-4bad1e59de5b446e80a621fdfb5fb127/
-  007-7e5ecb11154e4c402caa51878e283e63/  031-d65b7afd4d43b3159b580cf6c974a26c/
-  008-201e1ab3e47d3b994f2d6532859ac301/  032-cd83aafc620d81b994f005c6a7b1d2c4/
-  009-35105e72d8ec2ddfd8adc8ffa8c1f088/  033-e065bfc2596f3b285877e36578d77cce/
-  010-ff68ea026e0efba0e4c2a71d64e12f2c/  034-0533ff015142c967f86b365076fcee18/
-  011-217e45abc1d2b188b0755fc6a550dfe9/  035-f127408b640dae1de6acc9bce1b68669/
-  012-d6adcade17e2d7d843cbd8e14aebf76a/  036-56654b678decdd2d77ecc07ead326ad7/
-  013-cdff71cb542f8159ff5c5a023c91f61c/  037-d3d16497570cb3f934e73c3f0c519822/
-  014-551f32ba477c7e8e8fad0769ac793d3c/  038-5b3b21be9e6dbbd5c7d8e031bd621717/
-  015-856ad0b4ee0273da8cd8ad3cf222077b/  039-d11e877087ec25fe2c8062708687204c/
-  016-7eb991928b39b40c98e7cb7970d0f15b/  040-5cf056a63f2e10ee78d599e097eb4d0e/
-  017-9a3f4b32f5ba30ec173dd651c9810c6e/  041-ca696dc0edbe70890f2dcbcfcf99fe47/
-  018-9067a6dbbb4afaf285f5c9101fa5fa73/  042-9962ccd67846d21245580de2c5e83bcc/
-  019-03a0123bd55725fdabec32e0aeff9d44/  043-18503a94bf6398644e2a32d3a93e9450/
-  020-266ed9d092128d8e3c3c2f78669a0425/  044-6c46f7a9e9cd0b50d914d6e2a188a64d/
-  021-00a156df6ccecab8d35c5bdc5ddb6c0e/  045-0af51ef33a80a99ac38bfbac10fea9b2/
-  022-91f0d18a4d9cd2e6721d937c9de4dbe9/  046-746823fee6450a294869dc9ca7396e15/
-  023-e3edef5a83fe941c75df4257ac056ca5/  047-f9046e62d8da3159dfcdebcf687092f3/
+  000-a96da9ba9ee27be055166a3f64f641d2  024-04c03c243eea170aaf2bcb6ad27b3553
+  001-683dca8ed500db306362a9aed10876f6  025-59e26f89a5c4ff98b7e6bb3ab23369f8
+  002-ed389f6f0b8f8656891dd2785f1eca9d  026-2217691056bf0ab11e64e6125abefb3a
+  003-79cacb84c4fb358ba7431c60ee0bd6b9  027-a6d738c5a732b6c4cb130fa5a36cc525
+  004-b9eec14c504e6a2d2b23448e7e4073e5  028-b6e0b030fda9d3d2eff55b6e29b3438b
+  005-18248bf1c448246a741e8c0e9099934e  029-b4754c22669dbcad1e2a66f3bc94ced1
+  006-b4c8cd0dec50799eb77dbfff487f2608  030-2af86aa5329a5b69c9b5feaf989e9652
+  007-c3ce48559a177812a9934f76cf45bd72  031-30ee10ccca40840a52c574defe622c51
+  008-e15c5fdad6d3c6a4ef09e97d3d43ff40  032-03d1cf2e9d1a7b3c1692d52003669099
+  009-889ac21d981a4aaee5ecb338d3845bea  033-d92c598ca65e423b71b4c52b0c99ca45
+  010-8fcac713a518bfac737f72efd9c7a72f  034-b2bd1faf276b8072f97a6ed6ed8a4a3a
+  011-20daf27250fd56ecbccc3cd674229ad6  035-2f676e229524da9f68b07024d2db9463
+  012-7acbff8c9aebc0e51dc401eb1166fe41  036-7c97e794bfd442cf4062291755220fd8
+  013-90701b1a193e4bcb3302348a0a89f26d  037-d8e72d98da5130bbab551f1fc6e6ee18
+  014-c25408ecfd430a8550962fe2aab6be7e  038-d0759f20f4f5029d2a7dd872bda4d330
+  015-94ef45703ab2c96dd05add8a78b9d24f  039-372d0de1c0aee25861e60d96f13700ac
+  016-1a3a94fbad26651b1cce1f031b414841  040-6c390a413d099e4e41d00bbc79e36e23
+  017-7f8d639a85f5e61685d0c919e4053270  041-ebff32cd18b128a5e9eb790b2d61682e
+  018-2e38d5032b32c9e8c6c1f34c54ad5f07  042-fceb9e65b951a4b44000589cd7cd5fb1
+  019-bbf0acb5c529bbb75dad3b9e0814af1d  043-ff77579f63caa2569105f2c1d0edd157
+  020-e4df1cc5ad45307f39c6a03235b3857d  044-f16c4a6c32cb350a004a9618254d79a4
+  021-2f3ecfddc555d626a31bf812982bc877  045-cae7631f8cb0bbb257bf11d8d38b2611
+  022-9d90968a994089d8cacfd3a092b083f9  046-97299823f49756637785d68a432f81d3
+  023-8ffc3ecfdc3cd5cedc47d06ad1f61c46  047-82e6500591a10f967a7be1035407151a
 
 The directory names consist of an integer allowing an easy location and a MD5
-hash of the run parameters. In each directory, there are four files::
+hash of the run parameters. In each directory, there are five files::
 
-  $ ls output/study/000-7a6b546a625c2d37569346a286f2b2b6/
-  options.txt  output_log.txt  soops-parameters.csv  wins.png
+  $ ls output/study/000-*
+  options.txt  output_log.txt  run.py  soops-parameters.csv  wins.png
 
-three just like in the basic run above, and `soops-parameters.csv`, where the
-run parameters (mostly command line arguments) are stored by `soops-run`. For
-convenience, parameters of all runs are collected in `all_parameters.csv` in the
-`soops-run` output directory (`output` by default), using the data in all
+three just like in the basic run above, `soops-parameters.csv`, where the run
+parameters (mostly command line arguments) are stored by `soops-run` and
+`run.py` script that can be used to manually rerun the run. For convenience,
+parameters of all runs are collected in `all_parameters.csv` in the `soops-run`
+output directory (`output` by default), using the data in all
 `soops-parameters.csv` files found.
 
 Our example script also stores the values of command line arguments in
 ``options.txt`` for possible re-runs and inspection::
 
-  $ cat output/study/000-7a6b546a625c2d37569346a286f2b2b6/options.txt
+  $ cat output/study/000-a96da9ba9ee27be055166a3f64f641d2/options.txt
 
   command line
   ------------
 
-  "soops/examples/monty_hall.py" "output/study/000-7a6b546a625c2d37569346a286f2b2b6" "--num=100" "--repeat=10" "--host=random" "--no-show" "--silent"
+  "soops/examples/monty_hall.py" "output/study/000-a96da9ba9ee27be055166a3f64f641d2" "--host=random" "--num=100" "--repeat=10" "--no-show" "--silent"
 
   options
   -------
 
   host: random
   num: 100
-  output_dir: output/study/000-7a6b546a625c2d37569346a286f2b2b6
+  output_dir: output/study/000-a96da9ba9ee27be055166a3f64f641d2
   plot_opts: {'linewidth': 3, 'alpha': 0.5}
   repeat: 10
   seed: None
@@ -377,20 +382,20 @@ directories::
 
 ::
 
-  $ soops-info soops/examples/monty_hall.py -e output/study/000-7a6b546a625c2d37569346a286f2b2b6/
-  info: output/study/000-7a6b546a625c2d37569346a286f2b2b6/
-  info:      finished: True
-  info: *      --host: random
-  info: *   --no-show: @defined
-  info: *       --num: 100
-  info: * --plot-opts: @undefined
-  info: *    --repeat: 10
-  info: *      --seed: @undefined
-  info: *    --silent: @defined
-  info: *    --switch: @undefined
-  info: *      python: python3
-  info:    output_dir: output/study/000-7a6b546a625c2d37569346a286f2b2b6
-  info:    script_dir: examples
+  $ soops-info soops/examples/monty_hall.py -e output/study/000-*
+  info: output/study/000-a96da9ba9ee27be055166a3f64f641d2/
+  info:     finished: True
+  info:         iset: 0
+  info: *     --host: random
+  info: *  --no-show: @defined
+  info: *      --num: 100
+  info: *   --repeat: 10
+  info: *     --seed: @undefined
+  info: *   --silent: @defined
+  info: *   --switch: @undefined
+  info: *     python: python3
+  info:   output_dir: output/study/000-a96da9ba9ee27be055166a3f64f641d2
+  info:   script_dir: soops/examples
 
 A `*` denotes a parameter used in the parameterization of the example script,
 other parameters are employed by `soops-run`.
@@ -454,8 +459,8 @@ Then we are ready to run ``soops-scoop``::
                      [--filter filename[,filename,...]] [--no-plugins]
                      [--use-plugins name[,name,...] | --omit-plugins
                      name[,name,...]] [-p module] [--plugin-args dict-like]
-                     [--results filename] [--no-csv] [-r] [--write] [--shell]
-                     [--debug] [-o path]
+                     [--results filename] [--no-csv] [-r | -u] [--write]
+                     [--write-after-plugins] [--shell] [--debug] [-o path]
                      scoop_mod directories [directories ...]
 
   Scoop output files.
@@ -488,8 +493,15 @@ Then we are ready to run ``soops-scoop``::
     --results filename    results file name [default: <output_dir>/results.h5]
     --no-csv              do not save results as CSV (use only HDF5)
     -r, --reuse           reuse previously scooped results file
+    -u, --update          update previously scooped results file with results in
+                          new directories. Results in previously existing
+                          directories are reused (as with -r) without any
+                          contents checking.
     --write               write results files even when results were loaded
                           using --reuse option
+    --write-after-plugins
+                          write the pandas HDF5 results file again after plugins
+                          were applied
     --shell               run ipython shell after all computations
     --debug               automatically start debugger when an exception is
                           raised
@@ -502,9 +514,9 @@ as follows::
 
   <snip>
 
-  Python 3.7.3 | packaged by conda-forge | (default, Jul  1 2019, 21:52:21)
+  Python 3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]
   Type 'copyright', 'credits' or 'license' for more information
-  IPython 7.13.0 -- An enhanced Interactive Python. Type '?' for help.
+  IPython 8.39.0 -- An enhanced Interactive Python. Type '?' for help.
 
   In [1]: df.keys()
   Out[1]:
@@ -523,11 +535,11 @@ as follows::
 
   In [3]: df.iloc[0]
   Out[3]:
-  rdir          ~/projects/soops/output/study/000-7a6b546a625c...
+  rdir          ~/projects/soops/output/study/000-a96da9ba9ee2...
   rfiles                            [options.txt, output_log.txt]
   host                                                     random
   num                                                         100
-  output_dir    output/study/000-7a6b546a625c2d37569346a286f2b2b6
+  output_dir    output/study/000-a96da9ba9ee27be055166a3f64f641d2
   plot_opts                        {'linewidth': 3, 'alpha': 0.5}
   repeat                                                       10
   seed                                                        NaN
@@ -536,7 +548,7 @@ as follows::
   switch                                                    False
   elapsed       [0.0031552709988318384, 0.0032349379907827824,...
   win_rate      [0.32, 0.4, 0.38, 0.27, 0.31, 0.39, 0.25, 0.33...
-  time                                 2021-02-07 14:34:30.202971
+  time                                 2026-10-07 14:05:33.537072
   Name: 0, dtype: object
 
 The ``DataFrame`` with the all results is saved in ``output/study/results.h5``
@@ -703,7 +715,8 @@ parameters. The `soops-find` script can be used instead::
 
   $ soops-find -h
   usage: soops-find [-h] [-q pandas-query-expression]
-                    [--engine {numexpr,python}] [--shell]
+                    [--engine {numexpr,python}] [-m {truncated,full,single}]
+                    [-k KEY] [--shell]
                     directories [directories ...]
 
   Find parametric studies with parameters satisfying a given query.
@@ -723,6 +736,10 @@ parameters. The `soops-find` script can be used instead::
                           parameters
     --engine {numexpr,python}
                           pandas query evaluation engine [default: numexpr]
+    -m {truncated,full,single}, --mode {truncated,full,single}
+                          output mode [default: truncated]
+    -k KEY, --key KEY     column key. If given, forces "single" output mode
+                          [default: output_dir]
     --shell               run ipython shell after all computations
 
 Without options, it loads all parameter sets found in given directories into
@@ -731,12 +748,12 @@ a DataFrame and launches the ipython shell::
   $ soops-find output/study
   find: 48 parameter sets stored in `apdf` DataFrame
   find: column names:
-  Index(['finished', 'host', 'no_show', 'num', 'plot_opts', 'repeat', 'seed',
+  Index(['finished', 'iset', 'host', 'no_show', 'num', 'repeat', 'seed',
          'silent', 'switch', 'python', 'output_dir', 'script_dir'],
         dtype='object')
-  Python 3.8.5 (default, Sep  4 2020, 07:30:14)
+  Using matplotlib backend: gtk3agg
+  Python 3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]
   Type 'copyright', 'credits' or 'license' for more information
-  IPython 7.21.0 -- An enhanced Interactive Python. Type '?' for help.
 
   In [1]:
 

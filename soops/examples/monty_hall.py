@@ -48,7 +48,6 @@ Examples
 
   soops-find output/study -q "num==1000 & repeat==20 & seed==12345"
 """
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import os
 from functools import partial
 from itertools import product
@@ -60,6 +59,19 @@ import soops as so
 import soops.scoop_outputs as sc
 from soops import output
 
+opts = so.Struct(
+    output_dir=(None, 'output directory'),
+    switch=(False, 'if given, the contestant always switches the door,'
+            ' otherwise never switches'),
+    host=(('random', 'first'), 'the host strategy for opening doors'),
+    num=(100, 'the number of rounds in a single simulation'),
+    repeat=(5, 'the number of simulations'),
+    seed=([None, 42], 'if given, the random seed is fixed to the given value'),
+    plot_opts=('linewidth=3,alpha=0.5', 'matplotlib plot() options'),
+    show=(True, 'do not call matplotlib show()', ),
+    silent=(False, 'do not print messages to screen'),
+)
+
 def get_run_info():
     # script_dir is added by soops-run, it is the normalized path to
     # this script.
@@ -67,19 +79,8 @@ def get_run_info():
     {python} {script_dir}/monty_hall.py {output_dir}
     """
     run_cmd = ' '.join(run_cmd.split())
-
-    # Arguments allowed to be missing in soops-run calls.
-    opt_args = {
-        '--num' : '--num={--num}',
-        '--repeat' : '--repeat={--repeat}',
-        '--switch' : '--switch',
-        '--host' : '--host={--host}',
-        '--seed' : '--seed={--seed}',
-        '--plot-opts' : '--plot-opts={--plot-opts}',
-        '--no-show' : '--no-show',
-        '--silent' : '--silent',
-    }
-
+    opt_args = so.build_opt_args(opts, omit=['--plot-opts'],
+                                 return_defaults=True)
     output_dir_key = 'output_dir'
     is_finished_basename = 'wins.png'
 
@@ -173,67 +174,26 @@ def plot_win_rates(df, data=None, colormap_name='viridis'):
 
     return data
 
-helps = {
-    'output_dir'
-    : 'output directory',
-    'switch'
-    : ('if given, the contestant always switches the door, otherwise never'
-       ' switches'),
-    'host'
-    : 'the host strategy for opening doors',
-    'num'
-    : 'the number of rounds in a single simulation [default: %(default)s]',
-    'repeat'
-    : 'the number of simulations [default: %(default)s]',
-    'seed'
-    : 'if given, the random seed is fixed to the given value',
-    'plot_opts'
-    : 'matplotlib plot() options [default: "{}"]',
-    'no_show'
-    : 'do not call matplotlib show()',
-    'silent'
-    : 'do not print messages to screen',
-}
+def parse_args(args=None):
+    from argparse import ArgumentParser, RawDescriptionHelpFormatter
+
+    parser = ArgumentParser(description=__doc__,
+                            formatter_class=RawDescriptionHelpFormatter)
+    so.build_arg_parser(parser, opts, aliases=dict(show='-n'))
+    options = parser.parse_args(args=args)
+    options.plot_opts = so.parse_as_dict(options.plot_opts)
+
+    return options
 
 def main():
-    default_plot_opts = ("linewidth=3,alpha=0.5")
-    helps['plot_opts'] = helps['plot_opts'].format(default_plot_opts)
-
-    parser = ArgumentParser(description=__doc__.rstrip(),
-                            formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('output_dir', help=helps['output_dir'])
-    parser.add_argument('--switch',
-                        action='store_true', dest='switch',
-                        default=False, help=helps['switch'])
-    parser.add_argument('--host', action='store', dest='host',
-                        choices=['random', 'first'],
-                        default='random', help=helps['host'])
-    parser.add_argument('--num', metavar='int', type=int,
-                        action='store', dest='num',
-                        default=100, help=helps['num'])
-    parser.add_argument('--repeat', metavar='int', type=int,
-                        action='store', dest='repeat',
-                        default=5, help=helps['repeat'])
-    parser.add_argument('--seed', metavar='int', type=int,
-                        action='store', dest='seed',
-                        default=None, help=helps['seed'])
-    parser.add_argument('--plot-opts', metavar='dict-like',
-                        action='store', dest='plot_opts',
-                        default=default_plot_opts, help=helps['plot_opts'])
-    parser.add_argument('-n', '--no-show',
-                        action='store_false', dest='show',
-                        default=True, help=helps['no_show'])
-    parser.add_argument('--silent',
-                        action='store_true', dest='silent',
-                        default=False, help=helps['silent'])
-    options = parser.parse_args()
+    options = parse_args()
 
     output_dir = options.output_dir
 
     output.prefix = 'monty_hall:'
     filename = os.path.join(output_dir, 'output_log.txt')
     so.ensure_path(filename)
-    output.set_output(filename=filename, combined=options.silent == False)
+    output.set_output(filename=filename, combined=not options.silent)
 
     options.plot_opts = so.parse_as_dict(options.plot_opts)
     filename = os.path.join(output_dir, 'options.txt')
