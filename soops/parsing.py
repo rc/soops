@@ -91,8 +91,8 @@ def get_standard_type_defs(word=word_free):
     tuple_str = Forward()
     list_str = Forward()
     dict_str = Forward()
-    cvt_tuple = lambda toks : [ tuple(toks.asList()) ]
-    cvt_dict = lambda toks: [ dict(toks.asList())]
+    cvt_tuple = lambda toks : [ tuple(toks.as_list()) ]
+    cvt_dict = lambda toks: [ dict(toks.as_list())]
 
     list_item = (none ^ boolean ^ cmplx ^ real ^ integer ^
                  list_str ^ tuple_str ^ dict_str ^
@@ -105,7 +105,7 @@ def get_standard_type_defs(word=word_free):
     tuple_str.inner.set_parse_action(cvt_tuple)
     tuple_str << (lparen + tuple_str.inner + rparen)
 
-    list_str.inner.set_parse_action(lambda toks: [toks.asList()])
+    list_str.inner.set_parse_action(lambda toks: [toks.as_list()])
     list_str << (lbrack + list_str.inner + rbrack)
 
     dict_entry = Group(list_item + (colon | equal_sign) + list_item2)
